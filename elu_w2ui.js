@@ -255,36 +255,43 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
     var html = '<html><head><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
     
     var cols = grid.columns.filter (function (i) {return !i.hidden})
-
-    $('#grid_' + grid.name + '_columns tr').each (function () {
     
-        var $tr = $(this)
-        
-        if (!$tr.text ()) return 
+    var trs = [[], []]
 
+    $('#grid_' + grid.name + '_body div[class^=w2ui-col-]').each (function () {
+        
+        var $this = $(this); if (!$this.text ().trim ().length) return
+
+        var i = $this.hasClass ('w2ui-col-group') ? 0 : $this.hasClass ('w2ui-col-header') ? 1 : -1
+        
+        if (i >= 0) trs [i].push ($this.parent ())
+
+    })
+
+    for (var i = 0; i < 2; i ++) {
+    
+        var tr = trs [i]; if (!tr.length) continue
+        
         html += '<tr>'
-        
-        var n = 0
 
-        $('td', $tr).each (function () {
+        for (var j = 0; j < tr.length; j ++) {
 
-            var $td = $(this)
-
-            if (!/^\d+$/.test ($td.attr ('col'))) return
-
-            if ((++ n) > cols.length) return false
-
+            var $td = tr [j]                        
+            
             html += '<th'
 
-            var colspan = $td.attr ('colspan'); if (colspan) html += ' colspan=' + colspan
-            var rowspan = $td.attr ('rowspan'); if (rowspan) html += ' rowspan=' + rowspan
+            if (!i) {
+                function attr (name) {var v = $td.attr (name); if (v) html += ' ' + name + '=' + v}
+                attr ('colspan')
+                attr ('rowspan')
+            }
 
             html += '>' + escapeHtml ($td.text ())
 
-        }) 
-    
-    })
-        
+        }                
+
+    }
+
     function printRows (rows) {
 
         for (var i = 0; i < rows.length; i ++) {
