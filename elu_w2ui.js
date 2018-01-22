@@ -314,7 +314,11 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
                     v = String (v).replace ('.', ',')
                 }
                 
-                html += '>' + escapeHtml (v)
+                html += '>'
+                
+                if (!/^\d+$/.test (row.recid)) html += '<b>'
+                
+                html += escapeHtml (v)
 
             }
 
@@ -323,8 +327,10 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
     }
     
     printRows (grid.records)
-    
+
     function terminate () {
+        var sum = grid.summary
+        if (sum && sum.length) printRows (sum)
         html += '</table></body></html>'
         grid.unlock ()
         html.saveAs (fn)
