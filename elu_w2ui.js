@@ -136,7 +136,9 @@ $.fn.w2regrid = function (o) {
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
-    
+
+    if (!$_REQUEST.id && !('onDblClick' in o)) o.onDblClick = function (e) {openTab ('/' + $_REQUEST.type + '/' + this.get (e.recid).uuid)}
+
     if (!o.show) o.show = {}
     
     if (!('skipRecords' in o.show)) o.show.skipRecords = false
