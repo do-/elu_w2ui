@@ -136,6 +136,10 @@ $.fn.w2regrid = function (o) {
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
+    
+    if (!o.show) o.show = {}
+    
+    if (!('skipRecords' in o.show)) o.show.skipRecords = false
 
     return this.w2grid (o)
 
