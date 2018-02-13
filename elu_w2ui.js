@@ -142,6 +142,16 @@ $.fn.w2regrid = function (o) {
     if (!o.show) o.show = {}
     
     if (!('skipRecords' in o.show)) o.show.skipRecords = false
+    
+    $.each (o.columns, function () {
+    
+        var col = this
+        
+        var fld = col.field
+    
+        var voc = col.voc; if (voc) this.render = function (i) {var v = i [fld]; return v ? voc [v] : ''}
+    
+    })    
 
     return this.w2grid (o)
 
