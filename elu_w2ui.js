@@ -217,7 +217,7 @@ function normalizeValue (raw, type) {
 
     if (type == 'date') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})
     if (type == 'int') s = s.replace (/[\D]/g, '')
-    if (type == 'float') s = s.replace (/ /g, '').replace (',', '.')
+    if (type.split (':') [0] == 'float') s = s.replace (/ /g, '').replace (',', '.')
 
     return s
 
