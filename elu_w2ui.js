@@ -77,6 +77,8 @@ function dia2w2uiRecords (records) {
 
 function dia2w2ui (e) {
 
+    if (e.xhr.status != 200) return $_DO.apologize ({jqXHR: e.xhr})
+
     var content = JSON.parse (e.xhr.responseText).content
     
     var data = {
