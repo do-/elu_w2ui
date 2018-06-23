@@ -127,6 +127,21 @@ w2utils.unlockAll = function () {
 
 $.fn.w2reform = function (o) {
 
+    function refreshButtons () {
+        refill (this.record, $('.w2ui-buttons', $(this.box)))
+    }
+
+    function setRefreshButtons (e) {
+        e.done (refreshButtons)
+    }
+
+    var onRefresh = o.onRefresh
+    
+    o.onRefresh = !onRefresh ? setRefreshButtons : function (e) {
+        onRefresh (e)
+        setRefreshButtons (e)
+    }
+
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     return this.w2form (o)
