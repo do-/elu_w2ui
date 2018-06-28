@@ -52,6 +52,16 @@ function dia2w2uiRecords (records) {
                 if (v.length == 26) this [k] = dt_dmyhms (v)
             
             }
+            
+            var kk = k.split ('.')
+            
+            if (kk.length == 2) {
+            
+                if (!this [kk[0]]) this [kk[0]] = {}
+                
+                this [kk[0]] [kk[1]] = v                
+                
+            }
                     
         }       
         
@@ -154,7 +164,13 @@ $.fn.w2regrid = function (o) {
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
 
-    if (!$_REQUEST.id && !('onDblClick' in o)) o.onDblClick = function (e) {openTab ('/' + $_REQUEST.type + '/' + this.get (e.recid).uuid)}
+    if (!$_REQUEST.id && !('onDblClick' in o)) o.onDblClick = function (e) {
+    
+        var r = this.get (e.recid)
+    
+        openTab ('/' + $_REQUEST.type + '/' + (r.uuid || r.id))
+        
+    }
 
     if (!o.show) o.show = {}
     
