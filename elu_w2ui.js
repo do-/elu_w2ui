@@ -451,3 +451,13 @@ w2obj.form.prototype.values = function () {
     return result
 
 }
+
+var _do_apologize = $_DO.apologize
+
+$_DO.apologize = function (o, fail) {    
+
+    w2utils.unlockAll ()    
+
+    _do_apologize (o, fail)
+
+}
