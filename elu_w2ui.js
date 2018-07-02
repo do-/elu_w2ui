@@ -144,12 +144,19 @@ $.fn.w2reform = function (o) {
     function setRefreshButtons (e) {
         e.done (refreshButtons)
     }
-
-    var onRefresh = o.onRefresh
     
-    o.onRefresh = !onRefresh ? setRefreshButtons : function (e) {
-        onRefresh (e)
-        setRefreshButtons (e)
+    function andSetRefreshButtons (f) {
+        return !f ? setRefreshButtons : function (e) {
+            f (e)
+            setRefreshButtons (e)
+        }
+    }
+    
+    o.onRefresh = andSetRefreshButtons (o.onRefresh)
+    
+    if (o.tabs) {
+        if (Array.isArray (o.tabs)) o.tabs = {tabs: o.tabs}                
+        o.onClick = andSetRefreshButtons (o.onClick)
     }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
@@ -182,7 +189,13 @@ $.fn.w2regrid = function (o) {
         
         var fld = col.field
     
-        var voc = col.voc; if (voc) this.render = function (i) {var v = i [fld]; return v ? voc [v] : ''}
+        var voc = col.voc; if (voc) {
+        
+            this.render = function (i) {var v = i [fld]; return v ? voc [v] : ''}
+            
+            if (this.editable) this.editable.items = voc.items
+            
+        }
     
     })    
 
