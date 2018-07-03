@@ -191,7 +191,17 @@ $.fn.w2regrid = function (o) {
     
         var voc = col.voc; if (voc) {
         
-            this.render = function (i) {var v = i [fld]; return v ? voc [v] : ''}
+            if (!this.render) this.render = function (i) {
+            
+                var v = i [fld]; 
+                
+                if (!v) return ''
+                
+                if (Array.isArray (v)) return v.map (function (id) {return voc [id]}).sort ().join (', ')
+                
+                return voc [v]
+                
+            }
             
             if (this.editable) this.editable.items = voc.items
             
