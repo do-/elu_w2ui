@@ -465,10 +465,8 @@ w2obj.form.prototype.values = function () {
         
         var f = this
         var n = f.name
-        var v = normalizeValue (r [n], f.type)
-
-        if (v != null) result [n] = v
-
+        result [n] = normalizeValue (r [n], f.type)
+        
     })
 
     return result
