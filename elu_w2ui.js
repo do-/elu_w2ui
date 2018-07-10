@@ -195,11 +195,11 @@ $.fn.w2regrid = function (o) {
             
                 var v = i [fld]; 
                 
-                if (!v) return ''
+                if (v == null) v = ''
                 
                 if (Array.isArray (v)) return v.map (function (id) {return voc [id]}).sort ().join (', ')
                 
-                return voc [v]
+                return voc [v] || ''
                 
             }
             
