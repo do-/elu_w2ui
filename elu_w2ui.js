@@ -138,7 +138,11 @@ w2utils.unlockAll = function () {
 $.fn.w2reform = function (o) {
 
     function refreshButtons () {
-        refill (this.record, $('.w2ui-buttons', $(this.box)))
+        var $box = $(this.box)
+        var data = this.record
+        eachAttr ($box, 'data-off', data, function (me, n, v) {if ( v) me.hide (); else me.show ()})
+        eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})        
+        refill (data, $('.w2ui-buttons', $box))
     }
 
     function setRefreshButtons (e) {
