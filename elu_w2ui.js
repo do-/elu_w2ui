@@ -255,7 +255,7 @@ function add_vocabularies (data, o) {
 
         var raw = data [name]; if (!raw) continue
 
-        var idx = {items: raw.filter (function (r) {return !r.fake})}; $.each (raw, function () {idx [this.id] = this.text = this.label})
+        var idx = {items: raw.filter (function (r) {var f = r.fake; return !f || parseInt (f) == 0})}; $.each (raw, function () {idx [this.id] = this.text = this.label})
         
         data [name] = idx
     
