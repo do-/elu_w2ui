@@ -25,13 +25,15 @@ function dia2w2uiRecords (records) {
     $.each (records, function () {
         
         this.recid = this.id
-        
+
         if (this._status) {
-        
-            this.w2ui = {class: 'status_' + this._status}
-            
+
+            if (!this.w2ui) this.w2ui = {}
+
+            this.w2ui.class = 'status_' + this._status
+
             delete this._status
-        
+
         }
         
         for (k in this) {
