@@ -321,7 +321,7 @@ function escapeHtml(string) {
   return lastIndex !== index ? html + str.substring(lastIndex, index) : html
 }
 
-w2obj.grid.prototype.saveAsXLS = function (fn) {
+w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
     var grid = this
 
@@ -412,6 +412,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         html += '</table></body></html>'
         grid.unlock ()
         html.saveAs (fn)
+        if (typeof cb == 'function') cb()
     }
 
     if (!grid.url || !grid.last.xhr_hasMore) return terminate ()
@@ -425,6 +426,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         searchLogic: grid.last.logic,
         sort:        grid.sortData,
     }
+
+    data = $.extend(data, grid.postData)
 
     var ajaxOptions = {
         type     : 'POST',
