@@ -351,7 +351,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    var html = '<html><head><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+    var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
     
     var cols = grid.columns.filter (function (i) {return !i.hidden})
     
