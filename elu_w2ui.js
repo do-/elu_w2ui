@@ -137,6 +137,27 @@ w2utils.unlockAll = function () {
 
 }
 
+$.fn.w2relayout = function (o) {
+
+     $.each (o.panels, function() {
+
+        if (this.tabs && this.tabs.tabs) {
+
+            $.each (this.tabs.tabs, function () {
+                if (!('tooltip' in this))
+                    this.tooltip = ""
+            })
+
+        }
+
+    })
+
+    if (w2ui [o.name]) w2ui [o.name].destroy ()
+
+    return this.w2layout (o)
+
+}
+
 $.fn.w2reform = function (o) {
 
     function refreshButtons () {
@@ -321,7 +342,7 @@ function escapeHtml(string) {
   return lastIndex !== index ? html + str.substring(lastIndex, index) : html
 }
 
-w2obj.grid.prototype.saveAsXLS = function (fn) {
+w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
     var grid = this
 
@@ -330,7 +351,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    var html = '<html><head><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+    var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
 
     var cols = grid.columns.filter (function (i) {return !i.hidden})
 
@@ -412,6 +433,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         html += '</table></body></html>'
         grid.unlock ()
         html.saveAs (fn)
+        if (typeof cb == 'function') cb()
     }
 
     if (!grid.url || !grid.last.xhr_hasMore) return terminate ()
@@ -425,6 +447,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         searchLogic: grid.last.logic,
         sort:        grid.sortData,
     }
+
+    data = $.extend(data, grid.postData)
 
     var ajaxOptions = {
         type     : 'POST',
