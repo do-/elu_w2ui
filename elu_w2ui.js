@@ -1,29 +1,29 @@
 function dia2w2uiVoc (records) {
 
     $.each (records, function () {
-    
+
         this.text = this.label
-        
+
         delete this.label
-    
+
     })
-    
+
     return records
 
 }
 
 function dia2w2uiDrop (e) {e.data = {
 
-    status: "success", 
-    
+    status: "success",
+
     records: e.data.content.map (function (i) {return {id: i.id, text: i.label}})
-    
+
 }}
 
 function dia2w2uiRecords (records) {
 
     $.each (records, function () {
-        
+
         this.recid = this.id
 
         if (this._status) {
@@ -35,54 +35,54 @@ function dia2w2uiRecords (records) {
             delete this._status
 
         }
-        
+
         for (k in this) {
-        
+
             var v = this [k]; if (!v) continue;
-            
+
             if (typeof v === 'object') {
-            
+
                 for (j in v) this [k + '.' + j] = v [j] // org: {label: 'foo'} -> org_label: 'foo'
-            
-            }       
+
+            }
             else if (k.substr (0, 2) == 'dt') {
-                           
+
                 if (!v) continue
-                
+
                 if (v.length == 10) this [k] = dt_dmy (v)
 
-                if (v.length == 26) this [k] = dt_dmyhms (v)
-            
+                if (v.length == 19 || v.length == 26) this [k] = dt_dmyhms (v)
+
             }
-            
+
             var kk = k.split ('.')
-            
+
             if (kk.length == 2) {
-            
+
                 if (!this [kk[0]]) this [kk[0]] = {}
-                
-                this [kk[0]] [kk[1]] = v                
-                
+
+                this [kk[0]] [kk[1]] = v
+
             }
-                    
-        }       
-        
-    })
-    
-    if (records.length > 0) {
-    
-        var last = records [records.length - 1]
-        
-        if (last.is_total == '1' && last.def && last.def.name == '_root' && !last.w2ui) {
-        
-            last.recid = 'ИТОГО'
-            
-            last.w2ui = {summary: true}
-            
+
         }
-    
+
+    })
+
+    if (records.length > 0) {
+
+        var last = records [records.length - 1]
+
+        if (last.is_total == '1' && last.def && last.def.name == '_root' && !last.w2ui) {
+
+            last.recid = 'ИТОГО'
+
+            last.w2ui = {summary: true}
+
+        }
+
     }
-    
+
     return records
 
 }
@@ -92,7 +92,7 @@ function dia2w2ui (e) {
     if (e.xhr.status != 200) return $_DO.apologize ({jqXHR: e.xhr})
 
     var content = JSON.parse (e.xhr.responseText).content
-    
+
     var data = {
         status : "success",
         total  : content.cnt
@@ -104,7 +104,7 @@ function dia2w2ui (e) {
     delete content.portion
     delete content.total
 
-    for (key in content) {    
+    for (key in content) {
         data.records = dia2w2uiRecords (content [key])
         if (total) data.summary = [total]
         e.xhr.responseText = JSON.stringify (data)
@@ -115,7 +115,7 @@ function dia2w2ui (e) {
 function w2injectSearchValues (e) {
 
     $('.w2ui-grid-searches input[rel=search]').each (function () {
-    
+
         if (!/id/.test (this.name)) return
 
         if (this.name == e.target.name) return false
@@ -126,11 +126,11 @@ function w2injectSearchValues (e) {
 
         e.postData [this.name] = v.map (function (i) {return i.id})
         e.postData [this.name + '__op'] = $('#' + this.id.replace ('_field_', '_operator_')).val ()
-        
+
     })
 
 }
-    
+
 w2utils.unlockAll = function () {
 
     w2utils.unlock ($('div.w2ui-lock').parent ())
@@ -143,25 +143,25 @@ $.fn.w2reform = function (o) {
         var $box = $(this.box)
         var data = this.record
         eachAttr ($box, 'data-off', data, function (me, n, v) {if ( v) me.hide (); else me.show ()})
-        eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})        
+        eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})
         refill (data, $('.w2ui-buttons', $box))
     }
 
     function setRefreshButtons (e) {
         e.done (refreshButtons)
     }
-    
+
     function andSetRefreshButtons (f) {
         return !f ? setRefreshButtons : function (e) {
             f (e)
             setRefreshButtons (e)
         }
     }
-    
+
     o.onRefresh = andSetRefreshButtons (o.onRefresh)
-    
+
     if (o.tabs) {
-        if (Array.isArray (o.tabs)) o.tabs = {tabs: o.tabs}                
+        if (Array.isArray (o.tabs)) o.tabs = {tabs: o.tabs}
         o.onClick = andSetRefreshButtons (o.onClick)
     }
 
@@ -178,42 +178,42 @@ $.fn.w2regrid = function (o) {
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
 
     if (!$_REQUEST.id && !('onDblClick' in o)) o.onDblClick = function (e) {
-    
+
         var r = this.get (e.recid)
-    
+
         openTab ('/' + $_REQUEST.type + '/' + (r.uuid || r.id))
-        
+
     }
 
     if (!o.show) o.show = {}
-    
+
     if (!('skipRecords' in o.show)) o.show.skipRecords = false
-    
+
     $.each (o.columns, function () {
-    
+
         var col = this
-        
+
         var fld = col.field
-    
+
         var voc = col.voc; if (voc) {
-        
+
             if (!this.render) this.render = function (i) {
-            
-                var v = i [fld]; 
-                
+
+                var v = i [fld];
+
                 if (v == null) v = ''
-                
+
                 if (Array.isArray (v)) return v.map (function (id) {return voc [id]}).sort ().join (', ')
-                
+
                 return voc [v] || ''
-                
+
             }
-            
+
             if (this.editable) this.editable.items = voc.items
-            
+
         }
-    
-    })    
+
+    })
 
     return this.w2grid (o)
 
@@ -222,17 +222,17 @@ $.fn.w2regrid = function (o) {
 $.fn.w2uppop = function (o, done) {
 
     var $this = (this)
-    
+
     o.width  = $this.attr ('data-popup-width')
     o.height = $this.attr ('data-popup-height')
     o.title  = $this.attr ('data-popup-title')
-        
+
     o.onOpen = function (e) { e.done (function () {
-    
+
         done (e)
 
         var pop = $('#w2ui-popup')
-        
+
         pop.keyup (function (e) {
 
             if (e.key == 'Enter' && e.ctrlKey && !e.altKey && !e.shiftKey) {
@@ -258,9 +258,9 @@ function add_vocabularies (data, o) {
         var raw = data [name]; if (!raw) continue
 
         var idx = {items: raw.filter (function (r) {var f = r.fake; return !f || parseInt (f) == 0})}; $.each (raw, function () {idx [this.id] = this.text = this.label})
-        
+
         data [name] = idx
-    
+
     }
 
 }
@@ -326,36 +326,36 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
     var grid = this
 
     grid.lock ('Экспорт данных...')
-       
+
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
     var html = '<html><head><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
-    
+
     var cols = grid.columns.filter (function (i) {return !i.hidden})
-    
+
     var trs = [[], []]
 
     $('#grid_' + grid.name + '_body div[class^=w2ui-col-]').each (function () {
-        
+
         var $this = $(this); if (!$this.text ().trim ().length) return
 
         var i = $this.hasClass ('w2ui-col-group') ? 0 : $this.hasClass ('w2ui-col-header') ? 1 : -1
-        
+
         if (i >= 0) trs [i].push ($this.parent ())
 
     })
 
     for (var i = 0; i < 2; i ++) {
-    
+
         var tr = trs [i]; if (!tr.length) continue
-        
+
         html += '<tr>'
 
         for (var j = 0; j < tr.length; j ++) {
 
-            var $td = tr [j]                        
-            
+            var $td = tr [j]
+
             html += '<th'
 
             if (!i) {
@@ -366,7 +366,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
 
             html += '>' + escapeHtml ($td.text ())
 
-        }                
+        }
 
     }
 
@@ -386,16 +386,16 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
                 if (v == null) v = ''
 
                 html += '<td'
-                
+
                 var r = col.render; if (r == 'money' || /^float/.test (r)) {
                     html += ' class=n'
                     v = String (v).replace ('.', ',')
                 }
-                
+
                 html += '>'
-                
+
                 if (!/^\d+$/.test (row.recid)) html += '<b>'
-                
+
                 html += escapeHtml (v)
 
             }
@@ -403,7 +403,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         }
 
     }
-    
+
     printRows (grid.records)
 
     function terminate () {
@@ -432,34 +432,34 @@ w2obj.grid.prototype.saveAsXLS = function (fn) {
         dataType : 'text',
         contentType: 'application/json',
     };
-    
+
     var busy = false
-    
+
     var t = setInterval (function () {
-    
+
         if (busy) return;
 
-        if (data.offset >= grid.total) {        
-            clearInterval (t)            
-            return terminate ()        
+        if (data.offset >= grid.total) {
+            clearInterval (t)
+            return terminate ()
         }
-        
+
         busy = true
-        
+
         ajaxOptions.data = JSON.stringify (data)
 
-        $.ajax (ajaxOptions).done (function (ddd, status, xhr) {    
-            var e = {xhr: xhr}        
-            grid.onLoad (e)       
-            var d = JSON.parse (e.xhr.responseText) // {total: ..., records: ...}        
+        $.ajax (ajaxOptions).done (function (ddd, status, xhr) {
+            var e = {xhr: xhr}
+            grid.onLoad (e)
+            var d = JSON.parse (e.xhr.responseText) // {total: ..., records: ...}
             printRows (d.records)
             data.offset += d.records.length
             $('div.w2ui-lock-msg').text (Math.round (100 * data.offset / grid.total) + '%...')
             busy = false
-        })        
-    
+        })
+
     }, 100)
-    
+
 }
 
 w2obj.form.prototype.values = function () {
@@ -468,11 +468,11 @@ w2obj.form.prototype.values = function () {
     var r = this.record
 
     $.each (this.fields, function () {
-        
+
         var f = this
         var n = f.name
         result [n] = normalizeValue (r [n], f.type)
-        
+
     })
 
     return result
@@ -481,9 +481,9 @@ w2obj.form.prototype.values = function () {
 
 var _do_apologize = $_DO.apologize
 
-$_DO.apologize = function (o, fail) {    
+$_DO.apologize = function (o, fail) {
 
-    w2utils.unlockAll ()    
+    w2utils.unlockAll ()
 
     _do_apologize (o, fail)
 
