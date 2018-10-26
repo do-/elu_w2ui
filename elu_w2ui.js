@@ -24,7 +24,7 @@ function dia2w2uiRecords (records) {
 
     $.each (records, function () {
 
-        this.recid = this.id
+        if (!this.recid) this.recid = this.id
 
         if (this._status) {
 
