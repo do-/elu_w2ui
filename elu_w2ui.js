@@ -169,7 +169,19 @@ $.fn.w2reform = function (o) {
     }
 
     function setRefreshButtons (e) {
+
+        var r = w2ui [e.target].record
+            
+        if (r) $.each (o.fields, function () {
+            if (this.type != 'date') return
+            var v = r [this.name]
+            if (!v) return
+            if (v instanceof Date) v = v.toISOString ()
+            r [this.name] = dt_dmy (v)
+        })
+
         e.done (refreshButtons)
+        
     }
     
     function andSetRefreshButtons (f) {
