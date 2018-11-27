@@ -309,6 +309,7 @@ function normalizeValue (raw, type) {
 
     if (raw == null) return null
 
+    if (type == 'file') return raw
     if (type == 'checkbox') return (raw ? 1 : 0)
     if (type == 'list') return raw.id
     if (type == 'enum') return raw.map (function (i) {return i.id})
