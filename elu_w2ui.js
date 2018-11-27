@@ -319,7 +319,11 @@ function normalizeValue (raw, type) {
     if (s.length == 0) return null
 
     if (type == 'date') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})
-    if (type == 'datetime') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d\d)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {return y + '-' + m + '-' + d + ' ' + hrs + ':' + mnts + ':00'})
+    if (type == 'datetime') {
+        s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d+)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {
+            return y + '-' + m + '-' + d + ' ' + (hrs.length == 1 ? '0' : '') + hrs + ':' + mnts + ':00'
+        })
+    }
     if (type == 'int') s = s.replace (/[\D]/g, '')
     if (type.split (':') [0] == 'float') s = s.replace (/ /g, '').replace (',', '.')
 
