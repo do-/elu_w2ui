@@ -309,6 +309,7 @@ function normalizeValue (raw, type) {
 
     if (raw == null) return null
 
+    if (type == 'file') return raw
     if (type == 'checkbox') return (raw ? 1 : 0)
     if (type == 'list') return raw.id
     if (type == 'enum') return raw.map (function (i) {return i.id})
@@ -318,7 +319,11 @@ function normalizeValue (raw, type) {
     if (s.length == 0) return null
 
     if (type == 'date') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})
-    if (type == 'datetime') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d\d)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {return y + '-' + m + '-' + d + ' ' + hrs + ':' + mnts + ':00'})
+    if (type == 'datetime') {
+        s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d+)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {
+            return y + '-' + m + '-' + d + ' ' + (hrs.length == 1 ? '0' : '') + hrs + ':' + mnts + ':00'
+        })
+    }
     if (type == 'int') s = s.replace (/[\D]/g, '')
     if (type.split (':') [0] == 'float') s = s.replace (/ /g, '').replace (',', '.')
 
@@ -477,13 +482,14 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
         contentType: 'application/json',
     };
 
-    var busy = false
+    var busy = false,
+        done = false
 
     var t = setInterval (function () {
 
         if (busy) return;
 
-        if (data.offset >= grid.total) {
+        if (grid.total == -1 ? done : data.offset >= grid.total) {
             clearInterval (t)
             return terminate ()
         }
@@ -496,9 +502,14 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
             var e = {xhr: xhr}
             grid.onLoad (e)
             var d = JSON.parse (e.xhr.responseText) // {total: ..., records: ...}
-            printRows (d.records)
-            data.offset += d.records.length
-            $('div.w2ui-lock-msg').text (Math.round (100 * data.offset / grid.total) + '%...')
+            if (d.records.length) {
+                printRows (d.records)
+                data.offset += d.records.length
+            } else {
+                done = true
+            }
+
+            $('div.w2ui-lock-msg').text (grid.total == -1 ? 'Обработано ' + data.offset + ' строк' : Math.round (100 * data.offset / grid.total) + '%...')
             busy = false
         })
 
