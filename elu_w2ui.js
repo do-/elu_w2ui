@@ -305,29 +305,43 @@ function add_vocabularies (data, o) {
 
 }
 
+function normalizeScalarValue (s, type) {
+
+    if (s == '') return null
+    
+    switch (type) {
+    
+        case 'int':      
+            return s.replace (/[\D]/g, '')            
+            
+        case 'date':     
+            return s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})            
+            
+        case 'datetime': 
+            return s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d\d?)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {return y + '-' + m + '-' + d + ' ' + (hrs.length == 1 ? '0' : '') + hrs + ':' + mnts + ':00'})
+            
+        case 'float':                
+        case 'money':
+            return s.replace (/ /g, '').replace (',', '.')            
+            
+        default: 
+            return s
+            
+    }
+
+}
+
 function normalizeValue (raw, type) {
 
     if (raw == null) return null
-
-    if (type == 'file') return raw
-    if (type == 'checkbox') return (raw ? 1 : 0)
-    if (type == 'list') return raw.id
-    if (type == 'enum') return raw.map (function (i) {return i.id})
-
-    var s = String (raw).trim ()
-
-    if (s.length == 0) return null
-
-    if (type == 'date') s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})
-    if (type == 'datetime') {
-        s = s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d+)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {
-            return y + '-' + m + '-' + d + ' ' + (hrs.length == 1 ? '0' : '') + hrs + ':' + mnts + ':00'
-        })
+    
+    switch (type) {    
+        case 'file':     return raw           
+        case 'checkbox': return (raw ? 1 : 0)            
+        case 'list':     return raw.id            
+        case 'enum':     return raw.map (function (i) {return i.id})            
+        default:         return normalizeScalarValue (String (raw).trim (), type.split (':') [0])
     }
-    if (type == 'int') s = s.replace (/[\D]/g, '')
-    if (type.split (':') [0] == 'float') s = s.replace (/ /g, '').replace (',', '.')
-
-    return s
 
 }
 
