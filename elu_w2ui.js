@@ -24,6 +24,8 @@ function dia2w2uiRecords (records) {
 
     $.each (records, function () {
 
+        if (this.id == undefined && this.uuid != undefined) this.id = this.uuid
+
         this.recid = this.id
 
         if (this._status) {
