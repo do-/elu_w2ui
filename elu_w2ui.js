@@ -106,7 +106,7 @@ function dia2w2ui (e) {
     delete content.portion
     delete content.total
 
-    for (key in content) {
+    for (var key in content) {
         data.records = dia2w2uiRecords (content [key])
         if (total) data.summary = [total]
         e.xhr.responseText = JSON.stringify (data)
