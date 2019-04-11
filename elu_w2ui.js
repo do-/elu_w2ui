@@ -559,3 +559,556 @@ $_DO.apologize = function (o, fail) {
     _do_apologize (o, fail)
 
 }
+
+function w2field_voc(data) {
+
+    var $view = $('<span> \
+        <div id="w2ui-field-voc-page"> \
+            <div id="w2ui-field-voc-select-grid"></div> \
+            <div>Выбранные элементы</div> \
+            <div id="w2ui-field-voc-selected-grid"></div> \
+        </div> \
+        <div id="w2ui-field-voc-page-buttons"> \
+            <button class="w2ui-btn">Использовать выбранные</button> \
+            <button class="w2ui-btn">Очистить выбранные значения</button> \
+        </div> \
+    </span>');
+
+    var _default = {
+        columns: [{
+            field   : 'label',
+            caption : '',
+            size    : '100%'
+        }],
+        toolbar: [],
+        fieldLabelKey : 'label',
+        multiselect   : true
+    };
+
+    var options  = $.extend(_default, data)
+        , selected = options.fieldID ? $('#' + options.fieldID).data('selected') : options.selectedIds || []
+        , size     = {
+            h : $(window).height() * 0.9,
+            w : $(window).width()  * 0.9
+        }
+        , showGridHeaders = !(options.columns.length === 1 && !options.columns[0].caption)
+        , w2SelectedGrid;
+
+    if (options.onInit) options.onInit.call(this, options);
+
+    $view.eq(0).attr({
+        'data-popup-height' : size.h,
+        'data-popup-width'  : size.w,
+        'data-popup-title'  : options.title
+    });
+
+    if (options.gridID) {
+        $('#w2ui-overlay-' + options.gridID + '-searchOverlay')
+            .data('options')
+            .onHide = function() { return false; };
+    }
+
+    function returnValues (e) {
+
+        var values
+            , $field;
+
+        if (options.multiselect) {
+
+             values = w2SelectedGrid.records.map(function(i) {
+                i.text = i[options.fieldLabelKey];
+                return i;
+            });
+
+        } else {
+
+            values = [this.get(e.recid)];
+            values[0].text = values[0][options.fieldLabelKey];
+
+        }
+
+        if (options.fieldID) {
+
+            $field = $('#' + options.fieldID);
+
+            // $('.w2ui-field-helper.w2ui-list', $field.parent()).remove();
+
+            $field.w2field(
+                'voc',
+                $.extend($('#' + options.fieldID).data('w2field').options, { selected: values })
+            );
+
+            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd();
+
+        }
+
+        if (!options.fieldID && options.onAdd) options.onAdd(values);
+
+        if (options.form) {
+
+            w2ui[options.form].record[options.fieldID] = options.multiselect ? values : values[0].id;
+
+            w2ui[options.form].fields.forEach(function(item) {
+
+                if (item.field !== options.fieldID) return;
+                item.options.selected = values;
+
+            });
+        }
+
+        popup.close();
+
+        setTimeout(function () {
+            $field && $field.w2field().refresh();
+        }, 500);
+
+    }
+
+    var selectedIds = selected.length ? selected.map(function(item) { return item.id.toString(); }) : [];
+
+    function refreshGrids(ids, action, requestOff) {
+
+        if (action === 'add') selectedIds = selectedIds.concat(ids);
+        else selectedIds = selectedIds.filter(function(id) { return !ids.includes(id); });
+
+        selectedIds = selectedIds.map(function(id) { return id.toString(); });
+
+        if (options.multiselect) {
+            w2ui.selectedGrid.records = w2ui.selectGrid.allRecords.filter(function(record) { return selectedIds.includes(record.id.toString()); });
+            w2ui.selectedGrid.refresh();
+        }
+
+        w2ui.selectGrid.records = w2ui.selectGrid.allRecords.filter(function(record) { return !selectedIds.includes(record.id.toString()); });
+        w2ui.selectGrid.refresh();
+
+    }
+
+    function addToolbarToSearch() {
+
+        var types = ['check', 'radio', 'menu-check', 'menu-radio']
+            , toolbar = w2ui.selectGrid_toolbar.items.filter(function(i) { return types.includes(i.type); })
+            , search  = w2ui.selectGrid.postData.search.filter(function(i) { return !toolbar.find(function(ii) { return ii.id == i.field  }); });
+
+        toolbar.forEach(function(item) {
+
+            if (item.checked || (Array.isArray(item.selected) ? item.selected.length : item.selected)) switch(item.type) {
+
+                case 'menu-radio':
+                    search.push({
+                        field    : item.id,
+                        type     : 'text',
+                        operator : 'is',
+                        value    : item.selected
+                    });
+                    break;
+
+                case 'menu-check':
+                    search.push({
+                        field    : item.id,
+                        type     : 'enum',
+                        operator : 'in',
+                        value    : item.items.filter(function(i) { return item.selected.includes(i.id); }),
+                        svalue   : item.selected
+                    });
+                    break;
+
+                default:
+                    search.push({
+                        field    : item.id,
+                        type     : 'text',
+                        operator : 'is',
+                        value    : 1
+                    });
+
+            }
+
+        });
+
+        w2ui.selectGrid.postData.search = search;
+
+    }
+
+    var popup = $view.w2uppop(
+        {
+            showMax   : true
+        },
+        function() {
+
+            var $selectGrid   = $('#w2ui-field-voc-select-grid'),
+                $selectedGrid = $('#w2ui-field-voc-selected-grid'),
+                $buttons      = $('button', $selectGrid.parent().next()),
+                $addbutton    = $buttons.eq(0),
+                $clearButton  = $buttons.eq(1),
+                gridHeight    = options.multiselect
+                    ? size.h / 2 - 82
+                    : size.h - 110;
+
+            $selectGrid.css({ height: gridHeight });
+
+            if (options.multiselect) {
+
+                $selectedGrid.css({ height: gridHeight });
+
+                w2SelectedGrid = $selectedGrid.w2regrid({
+                    name: 'selectedGrid',
+                    show: {
+                        toolbar       : false,
+                        columnHeaders : false
+                    },
+                    records: selected.map(function(item) { if (!item.recid) item.recid = item.id; return item; }),
+                    columns: (function() {
+
+                        var columns = options.columns.slice();
+
+                        if (columns.length > 1) columns.unshift({ field : '', caption : '', size : '24px' });
+                        return columns;
+
+                    })(),
+                    onDblClick: function(e) {
+
+                        var ids = [e.recid.toString()];
+
+                        this.selectNone();
+                        refreshGrids(ids, 'remove', true);
+
+                        if (!selectedIds.length) $clearButton.attr('disabled', true);
+
+                    }
+                });
+
+                w2SelectedGrid.refresh();
+
+            } else {
+
+                $buttons.remove();
+                $selectedGrid.prev().remove();
+
+            }
+
+            if (w2SelectedGrid && !w2SelectedGrid.records.length) $clearButton.attr('disabled', true);
+
+            if (!options.postData) options.postData = {};
+            if (!options.postData.search) options.postData.search = [];
+
+            if (options.name)
+                options.postData.search = options.postData.search.filter(function(i) { return i.field != options.name; });
+
+            var toolbar = [];
+
+            if (options.toolbar) toolbar = options.toolbar.reduce(function(ar, item) {
+
+                if (['check', 'radio', 'menu-check', 'menu-radio', 'break'].includes(item.type)) {
+
+                    if (typeof item.checked === 'function') item.checked = item.checked();
+
+                    if (item.checked || (Array.isArray(item.selected) ? item.selected.length : item.selected)) switch(item.type) {
+
+                        case 'menu-radio':
+                            options.postData.search.push({
+                                field    : item.id,
+                                type     : 'text',
+                                operator : 'is',
+                                value    : item.selected
+                            });
+                            break;
+
+                        case 'menu-check':
+                            options.postData.search.push({
+                                field    : item.id,
+                                type     : 'enum',
+                                operator : 'in',
+                                value    : item.items.filter(function(i) { return item.selected.includes(i.id); }),
+                                svalue   : item.selected
+                            });
+                            break;
+
+                        default:
+                            options.postData.search.push({
+                                field    : item.id,
+                                type     : 'text',
+                                operator : 'is',
+                                value    : 1
+                            });
+
+                    }
+
+                    ar.push(item);
+
+                }
+
+                return ar;
+
+            }, []);
+
+            var hiddenIds = [];
+
+            var searches = options.columns
+                .filter(function(column) { return !column.sOff; })
+                .map(function(column) { return { field: column.sField || column.field, type: column.type || 'text', caption : column.caption }; });
+
+            var requestLimit;
+
+            var w2SelectGrid,
+                w2SelectGridOptions = {
+                    name: 'selectGrid',
+                    show: {
+                        toolbar        : true,
+                        selectColumn   : options.multiselect,
+                        toolbarColumns : false,
+                        toolbarSearch  : false,
+                        columnHeaders  : showGridHeaders
+                    },
+                    toolbar: {
+                        items: (function() {
+
+                            if (!options.multiselect) return toolbar;
+
+                            var items = toolbar;
+
+                            if (items.length) items.push({ type: 'break' });
+
+                            items.push(
+                                { type: 'button', id: 'select', caption: 'Добавить выбранные' }
+                            );
+
+                            return items;
+
+                        })(),
+                        onClick: function(e) {
+                            if (e.target === 'select') {
+                                var ids = this.owner.getSelection();
+
+                                refreshGrids(ids, 'add');
+                                $clearButton.attr('disabled', false);
+
+                                this.owner.selectNone();
+                                this.disable('select');
+
+                            }
+                        }
+                    },
+                    searches    : searches,
+                    columns     : options.columns,
+                    multiSelect : options.multiselect,
+                    postData    : options.postData,
+
+                    onDblClick: function(e) {
+                        if (options.multiselect) {
+                            var ids = [e.recid.toString()];
+
+                            this.selectNone();
+                            refreshGrids(ids, 'add');
+
+                            $clearButton.attr('disabled', false);
+
+                        } else {
+                            returnValues.call(this, e);
+                        }
+                    },
+                    onSelect: function(e) {
+                        this.toolbar.enable('select');
+                    },
+                    onUnselect: function(e) {
+                        if (this.getSelection().length === 1 && this.getSelection()[0] == e.recid) this.toolbar.disable('select');
+                    },
+                    onSearch: function(e) {
+                        if (this.url)
+                            this.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
+
+                        e.searchData.forEach(function(field) {
+                            if (field.type === 'text') field.operator = 'contains';
+                        });
+
+                        this.postData.search = e.searchData;
+
+                        addToolbarToSearch();
+
+                    },
+                    onRequest : function (e) {
+
+                        requestLimit = e.postData.limit;
+
+                        e.postData.limit = e.postData.limit + selectedIds.length;
+
+                    },
+                    onLoad: function(e) {
+
+                        var json       = JSON.parse(e.xhr.responseText),
+                            recordsKey = options.recordsKey;
+
+                        if (!recordsKey) {
+                            var excludeKeys = ['cnt', 'portion', 'total'],
+                                keys = Object.keys(json.content).filter(function(i) { return !excludeKeys.includes(i) })
+
+                            if (keys.length !== 1) throw('No records key');
+                            else recordsKey = keys[0];
+                        }
+
+                        if (this.searches) {
+                            this.searches = this.searches.map(function(i) {
+                                if (json.content[i.dataKey]) i.options.items = i.dataCb ? i.dataCb(json.content[i.dataKey]) : json.content[i.dataKey];
+                                return i;
+                            })
+                        }
+
+                        var data = {
+                                status : json.status,
+                                total  : -1,
+                                records: []
+                                //json.content.cnt,
+                        };
+
+                        var records = dia2w2uiRecords(json.content[recordsKey]);
+
+                        if (!this.allRecords) this.allRecords = [];
+
+                        this.allRecords = this.allRecords.concat(records);
+                        this.allRecords = this.allRecords.reduce(function(ar, item) {
+
+                            var index = ar.findIndex(function(i) { return i.id == item.id; });
+
+                            if (index < 0) ar.push(item);
+                            return ar;
+
+                        }, []);
+
+                        var cnt = 0;
+
+                        records = records.filter(function(i) { return !selectedIds.includes(i.id.toString()) })
+
+                        for (var i = records.length - 1; i >= requestLimit; i --)
+                            records.pop ()
+
+                        data.records = records
+
+                        delete this.postData.filter;
+
+                        if (json.content.total) data.summary = json.content.total;
+
+                        e.xhr.responseText = JSON.stringify(data);
+
+                    }
+                };
+
+            // URL родительского элемента может динамически меняться
+            if (options.url) {
+                try {
+                    w2SelectGridOptions.url = $('#' + options.fieldID).w2field().options.url
+                } catch (e) {}
+                w2SelectGridOptions.url = w2SelectGridOptions.url || options.url
+            };
+
+            if (options.records) {
+                w2SelectGridOptions.records = options.records.map(function(i) {
+                    i.recid = i.id;
+                    return i;
+                }).filter(function(i) { return !selectedIds.includes(i.id.toString()) });
+            };
+
+            w2SelectGrid = $selectGrid.w2regrid(w2SelectGridOptions);
+
+            if (options.url) {
+
+                w2ui.selectGrid.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
+
+                w2ui.selectGrid_toolbar.on('click:after', function(e) {
+
+                    addToolbarToSearch();
+
+                    w2ui.selectGrid.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
+
+                    w2ui.selectGrid.reload();
+
+                });
+
+            } else {
+
+                if (!options.url) w2SelectGrid.refresh();
+
+                w2ui.selectGrid.allRecords = options.multiselect ? w2SelectGridOptions.records.concat(w2ui.selectedGrid.records) : w2SelectGridOptions.records;
+
+            }
+
+            w2SelectGrid.toolbar.disable('select');
+
+            $addbutton.click(function(e) {
+                returnValues(e);
+            });
+
+            $clearButton.click(function() {
+
+                selectedIds = [];
+                refreshGrids();
+                $clearButton.attr('disabled', true);
+
+            });
+
+            $('#grid_selectGrid_search_all').focus ()
+
+        }
+    );
+
+    popup.on('close:before', function(e) {
+        if (options.fieldID) $('#' + options.fieldID).data('block-next-call', 1);
+        if (options.gridID) {
+            setTimeout(function() {
+                $('#w2ui-overlay-' + options.gridID + '-searchOverlay')
+                    .data('options')
+                    .onHide = null;
+            }, 500);
+        }
+    });
+
+}
+
+$.fn.w2field('addType', 'voc', function(options) {
+
+    function removeHandlers($el) {
+
+        var events = $._data($el[0], 'events');
+
+        Object.keys(events).forEach(function(e) {
+            events[e].forEach(function(_e) {
+                $el.unbind(e, _e.handler);
+            });
+        });
+
+    }
+
+    if (options.form) options.onRemove = function(record) {
+
+        var id   = record.item.id;
+        var name = options.fieldID;
+
+        var field = w2ui[options.form].fields.find(function(item) { return item.field == name; });
+        field.options.selected = field.options.selected.filter(function(item) { return item.id !== id; });
+
+        if (options.multiselect) w2ui[options.form].record[name] = w2ui[options.form].record[name].filter(function(item) { return item.id !== id; })
+        else w2ui[options.form].record[name] = null;
+
+    }
+
+    var $el    = $(this.el),
+        $field = $el.w2field('enum', options),
+        $input = $('input', $el.data('w2field').helpers.multi),
+        params = {
+            gridID   : options.gridID,
+            fieldID  : $el.attr('id'),
+            selected : options.selected || [],
+            title    : options.title
+        };
+
+    params = $.extend(params, this.options);
+
+    removeHandlers($input);
+    removeHandlers($el);
+
+    $input.css( 'opacity', 0 );
+    $input.focus(function() {
+
+        if ($el.data('block-next-call')) return $el.data('block-next-call', 0);
+        w2field_voc(params);
+
+    });
+
+});
