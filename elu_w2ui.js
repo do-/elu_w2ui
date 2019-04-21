@@ -199,12 +199,16 @@ $.fn.w2reform = function (o) {
             setRefreshButtons (e)
         }
     }
+    
+    if (!o.actions) {
 
-    o.onRefresh = andSetRefreshButtons (o.onRefresh)
+        o.onRefresh = andSetRefreshButtons (o.onRefresh)
 
-    if (o.tabs) {
-        if (Array.isArray (o.tabs)) o.tabs = {tabs: o.tabs}
-        o.onClick = andSetRefreshButtons (o.onClick)
+        if (o.tabs) {
+            if (Array.isArray (o.tabs)) o.tabs = {tabs: o.tabs}
+            o.onClick = andSetRefreshButtons (o.onClick)
+        }
+
     }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
