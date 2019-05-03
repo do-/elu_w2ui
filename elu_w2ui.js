@@ -655,17 +655,21 @@ w2obj.form.prototype.values = function () {
 
     return result
 
-}
+};
 
-var _do_apologize = $_DO.apologize
+(function(){
 
-$_DO.apologize = function (o, fail) {
+    let _do_apologize = $_DO.apologize
 
-    w2utils.unlockAll ()
+    $_DO.apologize = function (o, fail) {
 
-    _do_apologize (o, fail)
+        w2utils.unlockAll ()
 
-}
+        _do_apologize (o, fail)
+
+    }
+    
+})();
 
 function w2field_voc(data) {
 
