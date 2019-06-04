@@ -539,9 +539,13 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
     }
 
+    var row_num = -1
+
     function printRows (rows) {
 
         for (var i = 0; i < rows.length; i ++) {
+
+            row_num ++
 
             html += '<tr>'
             var row = rows [i]
@@ -550,7 +554,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
                 var col = cols [j]
 
-                var v = typeof col.render === "function" ? col.render (row) : row [col.field]
+                var v = typeof col.render === "function" ? col.render (row, row_num, j, row [col.field]) : row [col.field]
 
                 if (v == null) v = ''
 
