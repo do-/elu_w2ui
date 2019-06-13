@@ -174,7 +174,7 @@ function dia2w2uiRecords (records) {
 
     })
 
-    if (records.length > 0) {
+    if (records && records.length > 0) {
 
         var last = records [records.length - 1]
 
