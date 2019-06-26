@@ -496,6 +496,172 @@ function escapeHtml(string) {
   return lastIndex !== index ? html + str.substring(lastIndex, index) : html
 }
 
+w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
+
+    function make_rows(rows) {
+
+        var fields_names = fields.map(function(i) { return i.name })
+
+        return rows.map(function(row) {
+
+            var keys   = Object.keys(row)
+            var values = []
+
+            fields_names.forEach(function(key) {
+
+                var field = fields.find(function(i) { return i.name === key })
+                var value = row[key]
+
+                if (typeof field.render === 'function') value = field.render(row)
+
+                if (value === null) value = ''
+                if (typeof value === 'undefined') value = ''
+
+                values.push(value)
+
+            })
+
+            return values
+
+        })
+
+    }
+
+    function iterator(offset) {
+
+        var ajaxData = {
+            selected    : [],
+            offset      : offset,
+            limit       : grid.limit,
+            search      : grid.searchData,
+            searchLogic : grid.last.logic,
+            sort        : grid.sortData
+        }
+
+        ajaxData = Object.assign(ajaxData, grid.postData)
+
+        $.ajax({
+            url         : grid.url,
+            data        : JSON.stringify(ajaxData),
+            type        : 'POST',
+            dataType    : 'text',
+            contentType : 'application/json',
+            success     : function(text) {
+
+                var data = JSON.parse(text)
+                data = data.content
+
+                var cnt     = data.cnt
+                var portion = data.portion
+                var total   = data.total
+
+                delete data.cnt
+                delete data.portion
+                delete data.total
+
+                var rows_key = Object.keys(data)[0]
+                var _rows    = make_rows(data[rows_key])
+
+                rows = rows.concat(_rows)
+
+                if (typeof iterator_cb === 'function') iterator_cb({ offset: offset, total: cnt, portion: portion })
+
+                if (_rows.length) iterator(offset + portion)
+                else done(total)
+
+            }
+        })
+    }
+
+    function done(total) {
+
+        done_cb({ head: head, fields: fields, rows: rows, total: total })
+
+    }
+
+    var grid = this
+
+    var column_groups = grid.columnGroups
+    var columns = grid.columns
+
+    var head   = []
+    var fields = []
+
+    if (column_groups.length) {
+
+        var columns_index = 0
+
+        head = [ [], [] ]
+
+        column_groups.forEach(function(column_group) {
+
+            var column
+
+            if (column_group.hidden) {
+
+                columns_index += column_group.master ? 1 : (column_group.span || 1)
+                return
+
+            }
+
+            if (column_group.master) {
+
+                column = {
+                    title   : columns[columns_index].caption,
+                    colspan : column_group.span || 1,
+                    rowspan : 2
+                }
+
+                var field = {
+                    name   : columns[columns_index].field,
+                    render : columns[columns_index].render
+                }
+
+                head[0].push(column)
+                fields.push(field)
+
+                columns_index++
+
+            } else {
+
+                var children = columns
+                    .slice(columns_index, columns_index + column_group.span)
+                    .filter(function(i) { return !i.hidden })
+
+                column = {
+                    title    : column_group.caption,
+                    colspan  : children.length
+                }
+
+                head[0].push(column)
+                head[1] = head[1].concat( children.map(function(i) { return { title: i.caption } }) )
+
+                fields = fields.concat(
+                    children.map(function(i) { return { name: i.field, render: i.render } })
+                )
+
+                columns_index += column_group.span
+
+            }
+
+        })
+
+    } else {
+
+        columns = columns.filter(function(i) { return !i.hidden })
+
+        head   = [ null, columns.map(function(i) { return { title: i.caption } }) ]
+        fields = columns.map(function(i) { return { name: i.field, render: i.render } })
+
+    }
+
+    var rows = make_rows(grid.records)
+
+    if (grid.url) iterator(grid.records.length)
+    else done(grid.summary[0])
+
+}
+
 w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
     var grid = this
@@ -505,148 +671,102 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+    function value(val, isNumber) {
 
-    var cols = grid.columns.filter (function (i) {return !i.hidden})
+        if (
+            typeof val === 'undefined'
+            || val === null
+        ) return ''
 
-    var trs = [[], []]
+        if (isNumber) val = String(val).replace ('.', ',')
 
-    $('#grid_' + grid.name + '_body div[class^=w2ui-col-]').each (function () {
-
-        var $this = $(this); if (!$this.text ().trim ().length) return
-
-        var i = $this.hasClass ('w2ui-col-group') ? 0 : $this.hasClass ('w2ui-col-header') ? 1 : -1
-
-        if (i >= 0) trs [i].push ($this.parent ())
-
-    })
-
-    for (var i = 0; i < 2; i ++) {
-
-        var tr = trs [i]; if (!tr.length) continue
-
-        html += '<tr>'
-
-        for (var j = 0; j < tr.length; j ++) {
-
-            var $td = tr [j]
-
-            html += '<th'
-
-            if (!i) {
-                function attr (name) {var v = $td.attr (name); if (v) html += ' ' + name + '=' + v}
-                attr ('colspan')
-                attr ('rowspan')
-            }
-
-            html += '>' + escapeHtml ($td.text ())
-
-        }
+        return escapeHtml(val)
 
     }
 
-    var row_num = -1
+    grid.toArray(
+        function(data) {
 
-    function printRows (rows) {
+            var percent
 
-        for (var i = 0; i < rows.length; i ++) {
+            if (grid.total != -1) {
 
-            row_num ++
-
-            html += '<tr>'
-            var row = rows [i]
-
-            for (var j = 0; j < cols.length; j ++) {
-
-                var col = cols [j]
-
-                var v = typeof col.render === "function" ? col.render (row, row_num, j, row [col.field]) : row [col.field]
-
-                if (v == null) v = ''
-
-                html += '<td'
-
-                var r = col.render; if (r == 'money' || /^float/.test (r)) {
-                    html += ' class=n'
-                    v = String (v).replace ('.', ',')
-                }
-
-                html += '>'
-
-                if (!/^\d+$/.test (row.recid)) html += '<b>'
-
-                html += escapeHtml (v)
+                percent = Math.round (100 * data.offset / grid.total)
+                if (percent > 100) percent = 100
 
             }
 
-        }
+            $('div.w2ui-lock-msg').text (grid.total == -1 ? 'Обработано ' + data.offset + ' строк' : percent + '%...')
 
-    }
+        },
+        function(data) {
 
-    printRows (grid.records)
+            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
 
-    function terminate () {
-        var sum = grid.summary
-        if (sum && sum.length) printRows (sum)
-        html += '</table></body></html>'
-        grid.unlock ()
-        html.saveAs (fn)
-        if (typeof cb == 'function') cb()
-    }
+            for (var i = 0; i <= 1; i++) {
 
-    if (!grid.url || !grid.last.xhr_hasMore) return terminate ()
+                if (!data.head[i]) continue
 
-    var data = {
-        cmd:         "get",
-        selected:    [],
-        limit:       grid.limit,
-        offset:      grid.records.length,
-        search:      grid.searchData,
-        searchLogic: grid.last.logic,
-        sort:        grid.sortData,
-    }
+                html += '<tr>'
 
-    data = $.extend(data, grid.postData)
+                data.head[i].forEach(function(th) {
 
-    var ajaxOptions = {
-        type     : 'POST',
-        url      : grid.url,
-        dataType : 'text',
-        contentType: 'application/json',
-    };
+                    var colspan = th.colspan || 1
+                    var rowspan = th.rowspan || 1
 
-    var busy = false,
-        done = false
+                    html += '<th colspan="' + colspan + '" rowspan="' + rowspan + '">' + th.title.trim() + '</th>'
 
-    var t = setInterval (function () {
+                })
 
-        if (busy) return;
+                html += '</tr>'
 
-        if (grid.total == -1 ? done : data.offset >= grid.total) {
-            clearInterval (t)
-            return terminate ()
-        }
-
-        busy = true
-
-        ajaxOptions.data = JSON.stringify (data)
-
-        $.ajax (ajaxOptions).done (function (ddd, status, xhr) {
-            var e = {xhr: xhr}
-            grid.onLoad (e)
-            var d = JSON.parse (e.xhr.responseText) // {total: ..., records: ...}
-            if (d.records.length) {
-                printRows (d.records)
-                data.offset += d.records.length
-            } else {
-                done = true
             }
 
-            $('div.w2ui-lock-msg').text (grid.total == -1 ? 'Обработано ' + data.offset + ' строк' : Math.round (100 * data.offset / grid.total) + '%...')
-            busy = false
-        })
+            data.rows.forEach(function(row) {
 
-    }, 100)
+                html += '<tr>'
+
+                row.forEach(function(val, idx) {
+
+                    var field    = data.fields[idx]
+                    var isNumber = field.render === 'money' || /^float/.test(field.render)
+                    var classes  = isNumber ? ' class="n"' : ''
+
+                    html += '<td' + classes + '>' + value(val, isNumber) + '</td>'
+
+                })
+
+                html += '</tr>'
+
+            })
+
+            if (data.total) {
+
+                html += '<tr>'
+
+                data.fields.forEach(function(field) {
+
+                    var isNumber = field.render === 'money' || /^float/.test(field.render)
+                    var classes  = isNumber ? ' class="n"' : ''
+
+                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber) + '</b></td>'
+
+                })
+
+                html += '</tr>'
+
+            }
+
+            html += '</table></body></html>'
+
+            grid.unlock ()
+
+            html.saveAs (fn)
+
+            if (typeof cb === 'function') cb()
+
+        }
+    )
 
 }
 
