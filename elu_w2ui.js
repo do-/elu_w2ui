@@ -1233,3 +1233,116 @@ $.fn.w2field('addType', 'voc', function(options) {
     });
 
 });
+
+function w2uiMultiButton() {
+
+    function onClick() {
+
+        var $this = $(this)
+        var rect  = this.getClientRects()[0]
+        var id    = $this.attr('data-id')
+
+        if (!id) {
+
+            id = (new Date()).getTime()
+            $this.attr('data-id', id)
+
+            $('body').append(
+                $('<div/>', { 'data-id': id, class: 'w2ui-multi-btn-wrapper'})
+                    .append($this.data('buttons'))
+            )
+
+            $('.w2ui-multi-btn-wrapper[data-id=' + id + '] .w2ui-btn[name]').click(function(e) {
+
+                var $this  = $(this)
+                var id     = $this.closest('.w2ui-multi-btn-wrapper').attr('data-id')
+                var fnName = $this.attr('name') + '_' + $_REQUEST.type
+
+                $('.w2ui-btn.multi[data-id=' + id + ']')
+                    .data('toggleOnBlur', false)
+                    .trigger('click')
+
+                if ($_DO[fnName]) $_DO[fnName].call(this, e)
+
+            })
+
+        }
+
+        var $wrapper = $('.w2ui-multi-btn-wrapper[data-id=' + id + ']')
+
+        $wrapper
+            .css({ top: (rect.top + rect.height) + 'px', left: rect.x + 'px' })
+            .toggleClass('show')
+
+        $this.toggleClass('show')
+
+    }
+
+    function onBlur() {
+
+        var $this = $(this)
+        var id    = $this.attr('data-id')
+
+        $this.data('toggleOnBlur', true)
+
+        setTimeout(function() {
+
+            if (!$this.data('toggleOnBlur')) return
+
+            $this.removeClass('show')
+            $('.w2ui-multi-btn-wrapper[data-id=' + id + ']').removeClass('show')
+
+        }, 300)
+
+    }
+
+    function setHandlers() {
+
+        $('.w2ui-btn.multi').each(function() {
+
+            $(this)
+                .off('click')
+                .off('blur')
+                .click(onClick)
+                .blur(onBlur)
+
+        })
+
+    }
+
+    function init() {
+
+        $(window).resize(function() {
+
+            $('.w2ui-multi-btn-wrapper.show').each(function() {
+                $('.w2ui-btn.multi[data-id=' + $(this).attr('data-id') + ']').blur()
+            })
+
+        })
+
+        $('.w2ui-multi-btn').each(function() {
+
+            var $div     = $(this)
+            var $buttons = $div.children()
+            var $button  = $('<button/>', { class: 'w2ui-btn', html: $div.attr('label') })
+
+            if (!$buttons.length) return $div.remove()
+            if ($div.is(':hidden')) return
+
+            $div.replaceWith($button)
+
+            $button.addClass('multi')
+            $button.data('buttons', $buttons)
+
+            setHandlers()
+
+        })
+
+    }
+
+    return {
+        init        : init,
+        setHandlers : setHandlers
+    }
+
+}
