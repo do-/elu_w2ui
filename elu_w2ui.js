@@ -552,7 +552,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 data = data.content
 
                 var cnt     = data.cnt
-                var portion = data.portion
+                var portion = data.portion || grid.limit
                 var total   = data.total
 
                 delete data.cnt
