@@ -507,15 +507,27 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
             var keys   = Object.keys(row)
             var values = []
 
+            keys.forEach(function(key) {
+
+                var value = row[key]
+
+                if (value === null || typeof value === 'undefined' || value.constructor.name !== 'Object') return
+
+                Object.keys(value).forEach(function(sub_key) {
+
+                    row[key + '.' + sub_key] = value[sub_key]
+
+                })
+
+            })
+
             fields_names.forEach(function(key) {
 
                 var field = fields.find(function(i) { return i.name === key })
                 var value = row[key]
 
                 if (typeof field.render === 'function') value = field.render(row)
-
-                if (value === null) value = ''
-                if (typeof value === 'undefined') value = ''
+                if (value === null || typeof value === 'undefined') value = ''
 
                 values.push(value)
 
