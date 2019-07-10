@@ -527,6 +527,14 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 var value = row[key]
 
                 if (typeof field.render === 'function') value = field.render(row)
+
+                if (/^dt/.test(key) && value) {
+
+                    if (value.length == 10) value = dt_dmy(value)
+                    if (value.length == 19 || value.length == 26) value = dt_dmyhms(value)
+
+                }
+
                 if (value === null || typeof value === 'undefined') value = ''
 
                 values.push(value)
