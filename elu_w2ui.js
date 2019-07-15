@@ -316,7 +316,19 @@ $.fn.w2reform = function (o) {
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
-    return this.w2form (o)
+    var f = this.w2form (o)
+
+    f.on('refresh:after', function() {
+
+        this.fields.forEach(function(f) {
+
+            if (f.type == 'checkbox') $('[name="' + f.name + '"]').prop('disabled', f.disabled)
+
+        })
+
+    })
+
+    return f
 
 }
 
