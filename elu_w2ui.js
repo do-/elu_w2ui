@@ -585,7 +585,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
                 var cnt     = data.cnt
                 var portion = data.portion || grid.limit
-                var total   = data.total
+                var total   = data.total   || grid.total
 
                 delete data.cnt
                 delete data.portion
@@ -689,7 +689,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
     var rows = make_rows(grid.records)
 
-    if (grid.url) iterator(grid.records.length)
+    if (grid.url && rows.length !== grid.total) iterator(grid.records.length)
     else done(grid.summary[0])
 
 }
