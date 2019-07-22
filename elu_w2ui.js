@@ -567,7 +567,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
             limit       : grid.limit,
             search      : grid.searchData,
             searchLogic : grid.last.logic,
-            sort        : grid.sortData
+            sort        : $.isEmptyObject(grid.sortData) ? undefined : grid.sortData
         }
 
         ajaxData = Object.assign(ajaxData, grid.postData)
