@@ -514,12 +514,12 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
         var fields_names = fields.map(function(i) { return i.name })
 
-        return rows.map(function(row) {
+        return rows.map(function(row, ind) {
 
             var keys   = Object.keys(row)
             var values = []
 
-            keys.forEach(function(key) {
+            keys.forEach(function(key, col) {
 
                 var value = row[key]
 
@@ -538,7 +538,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 var field = fields.find(function(i) { return i.name === key })
                 var value = row[key]
 
-                if (typeof field.render === 'function') value = field.render(row)
+                if (typeof field.render === 'function') value = field.render(row, ind, col, value)
 
                 if (/^dt/.test(key) && value) {
 
