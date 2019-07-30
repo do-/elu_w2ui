@@ -519,7 +519,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
             var keys   = Object.keys(row)
             var values = []
 
-            keys.forEach(function(key, col) {
+            keys.forEach(function(key) {
 
                 var value = row[key]
 
@@ -533,7 +533,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
             })
 
-            fields_names.forEach(function(key) {
+            fields_names.forEach(function(key, col) {
 
                 var field = fields.find(function(i) { return i.name === key })
                 var value = row[key]
