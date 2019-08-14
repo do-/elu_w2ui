@@ -1503,6 +1503,10 @@ function w2_popup_form () {
 	return w2ui [$('.w2ui-popup .w2ui-form').attr ('name')]
 }
 
+function w2_panel_form () {
+	return w2ui [$('.w2ui-panel-content.w2ui-form').attr ('name')]
+}
+
 function w2_first_grid () {
 	return w2ui [$('.w2ui-grid').attr ('name')]
 }
