@@ -335,6 +335,16 @@ $.fn.w2reform = function (o) {
 $.fn.w2regrid = function (o) {
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
+    
+    if (o.src) {
+    
+    	var src = Array.isArray (o.src) ? o.src : [o.src]
+    	
+    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + src [0]
+    	
+    	if (src.length > 1) o.postData = src [1]
+    
+    }
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
 
@@ -382,16 +392,6 @@ $.fn.w2regrid = function (o) {
 
     })
     
-    if (o.src) {
-    
-    	var src = Array.isArray (o.src) ? o.src : [o.src]
-    	
-    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + src [0]
-    	
-    	if (src.length > 1) o.postData = src [1]
-    
-    }
-
     return this.w2grid (o)
 
 }
@@ -1531,4 +1531,11 @@ function w2_close_popup_reload_grid () {
 
 function w2_confirm_open_tab (msg, url) {
 	w2confirm (msg).yes (() => openTab (url))
+}
+
+function w2_waiting_panel () {
+	let [ln, pn] = $('.w2ui-lock').closest ('.w2ui-panel').attr ('id').split ('_panel_')
+	let l = w2ui [ln.substr (7)]
+	l.unlock (pn)
+	return l.el (pn)
 }
