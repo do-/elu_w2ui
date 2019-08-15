@@ -381,6 +381,16 @@ $.fn.w2regrid = function (o) {
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
 
     })
+    
+    if (o.src) {
+    
+    	var src = Array.isArray (o.src) ? o.src : [o.src]
+    	
+    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + src [0]
+    	
+    	if (src.length > 1) o.postData = src [1]
+    
+    }
 
     return this.w2grid (o)
 
