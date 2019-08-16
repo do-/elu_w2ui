@@ -426,27 +426,14 @@ $.fn.w2uppop = function (o, done) {
     o.height = $this.attr ('data-popup-height')
     o.title  = $this.attr ('data-popup-title')
 
-    o.onOpen = function (e) { e.done (function () {
+    if (!$('button[data-hotkey="Ctrl-Enter"]').length) {
+	    var $button = $('button', $this)
+	    if ($button.length == 1) $button.attr ('data-hotkey', 'Ctrl-Enter')
+    }    
+    
+	o.onOpen = function (e) {e.done (done)}
 
-        done (e)
-
-        var pop = $('#w2ui-popup')
-
-        pop.keyup (function (e) {
-
-            if (e.key == 'Enter' && e.ctrlKey && !e.altKey && !e.shiftKey) {
-
-                var b = $('button:first', pop)
-
-                b.focus (function () {b.click ()}).focus ()
-
-            }
-
-        })
-
-    })}
-
-    return this.w2popup ('open', o);
+    return this.w2popup ('open', o)
 
 }
 
