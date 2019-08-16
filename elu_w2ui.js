@@ -265,8 +265,8 @@ $.fn.w2relayout = function (o) {
 
 				let name = e.tab.id
 
-				layout.content (name, '')
-				layout.lock    (name, 'Загрузка...', true)
+				layout.content (panel.type, '')
+				layout.lock    (panel.type, 'Загрузка...', true)
 
 				$_LOCAL.set (key, name) 								
 
