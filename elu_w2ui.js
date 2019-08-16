@@ -1548,3 +1548,44 @@ function w2_waiting_panel () {
 	l.unlock (pn)
 	return l.el (pn)
 }
+
+async function w2_upload_files_from_popup (o) {
+
+	let f = w2_popup_form ()
+	let r = f.record
+	
+    let files = (r [f.fields.filter (i => i.type == 'file') [0].name] || []).map (f => f.file)
+    
+    let n = files.length; if (!n) return
+
+    var sum_size = 0
+        
+    for (let file of files) {    
+        if (!file.type) file.type = "application/octet-stream"        
+        sum_size += file.size
+    }    
+    
+    let portion = 128 * 1024;
+    let sum = 0;
+   
+    $('#w2ui-popup button').hide ()
+    let $progress = $('#w2ui-popup progress')        
+    $progress.prop ({max: sum_size, value: 0}).show ()
+    w2utils.lock ($('#w2ui-popup .w2ui-page'))
+
+    o.onloadend  =    ()  => n --
+    o.onprogress = (x, y) => {sum += portion; $progress.val (sum)}	
+
+    return new Promise (function (resolve, reject) {    
+
+		let check = setInterval (function () {
+			if (n) return
+			clearInterval (check)
+			resolve ()
+		}, 100)
+
+		for (let file of files) Base64file.upload (file, o)    
+
+    })
+
+}
