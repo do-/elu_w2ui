@@ -245,7 +245,7 @@ w2utils.unlockAll = function () {
 $.fn.w2relayout = function (o) {
     
     for (let panel of o.panels) {
-    	let tabs = panel.tabs
+    	let tabs = panel.tabs; if (!tabs) continue
     	if (tabs.tabs) tabs = tabs.tabs
     	for (let tab of tabs) if (!('tooltip' in tab)) tab.tooltip = ""
     }
