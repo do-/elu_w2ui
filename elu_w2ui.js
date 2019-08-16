@@ -243,21 +243,46 @@ w2utils.unlockAll = function () {
 }
 
 $.fn.w2relayout = function (o) {
-
-     $.each (o.panels, function() {
-
-        if (this.tabs && this.tabs.tabs) {
-
-            $.each (this.tabs.tabs, function () {
-                if (!('tooltip' in this))
-                    this.tooltip = ""
-            })
-
-        }
-
-    })
+    
+    for (let panel of o.panels) {
+    	let tabs = panel.tabs
+    	if (tabs.tabs) tabs = tabs.tabs
+    	for (let tab of tabs) if (!('tooltip' in tab)) tab.tooltip = ""
+    }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
+    
+    if (!o.onRender) o.onRender = function (e) {
+
+    	var layout = this
+
+    	let key  = layout.name.replace ('_layout', '.active_tab')
+    	let tabs = layout.get ('main').tabs            	            	
+
+    	tabs.onClick = function (e) {
+
+			let name = e.tab.id
+		
+			layout.content ('main', '')
+			layout.lock    ('main', 'Загрузка...', true)
+			
+			$_LOCAL.set (key, name) 								
+			
+			show_block (name)
+		
+		}
+	    
+    	e.done (function () {
+    	
+    		let id = $_LOCAL.get (key)
+
+    		if (!tabs.get (id)) id = tabs.tabs [0].id
+
+			tabs.click (id)
+    		
+		})
+    	
+    }
 
     return this.w2layout (o)
 
