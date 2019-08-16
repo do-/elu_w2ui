@@ -313,6 +313,28 @@ $.fn.w2reform = function (o) {
         }
 
     }
+    
+    let obsrevedFields = o.fields.filter (f => f.onChange); if (obsrevedFields.length) {
+    
+    	let n2h = {}; for (f of obsrevedFields) n2h [f.name] = f.onChange
+    
+    	let oldOnChange = o.onChange
+    
+    	o.onChange = function (e) {
+    	
+    		if (oldOnChange) oldOnChange (e)
+    	
+    		let h = n2h [e.target]
+    		
+    		if (!h) return
+    		
+    		var v = e.value_new
+    		    		
+    		h ('id' in v ? v.id : v)
+    		
+    	}
+
+    }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
