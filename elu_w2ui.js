@@ -256,31 +256,35 @@ $.fn.w2relayout = function (o) {
 
     	var layout = this
 
-    	let key  = layout.name.replace ('_layout', '.active_tab')
-    	let tabs = layout.get ('main').tabs            	            	
+	    for (let panel of layout.panels) {
+	    
+			let tabs = panel.tabs; if (!tabs) continue
+			let key  = tabs.name
 
-    	tabs.onClick = function (e) {
+			tabs.onClick = function (e) {
 
-			let name = e.tab.id
-		
-			layout.content ('main', '')
-			layout.lock    ('main', 'Загрузка...', true)
-			
-			$_LOCAL.set (key, name) 								
-			
-			show_block (name)
+				let name = e.tab.id
+
+				layout.content (name, '')
+				layout.lock    (name, 'Загрузка...', true)
+
+				$_LOCAL.set (key, name) 								
+
+				show_block (name)
+
+			}
+
+			e.done (function () {
+
+				let id = $_LOCAL.get (key)
+
+				if (!tabs.get (id)) id = tabs.tabs [0].id
+
+				tabs.click (id)
+
+			})
 		
 		}
-	    
-    	e.done (function () {
-    	
-    		let id = $_LOCAL.get (key)
-
-    		if (!tabs.get (id)) id = tabs.tabs [0].id
-
-			tabs.click (id)
-    		
-		})
     	
     }
 
