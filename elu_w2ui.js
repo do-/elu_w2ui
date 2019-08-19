@@ -1572,6 +1572,10 @@ function w2_confirm_open_tab (msg, url) {
 }
 
 function w2_waiting_panel () {
+
+darn ($('.w2ui-lock'))
+darn ($('.w2ui-lock').closest ('.w2ui-panel'))
+
 	let [ln, pn] = $('.w2ui-lock').closest ('.w2ui-panel').attr ('id').split ('_panel_')
 	let l = w2ui [ln.substr (7)]
 	l.unlock (pn)
@@ -1616,5 +1620,17 @@ async function w2_upload_files_from_popup (o) {
 		for (let file of files) Base64file.upload (file, o)    
 
     })
+
+}
+
+w2obj.form.prototype.reload_block =  function () {
+	
+	this.lock ()
+	
+	let k = 'data-block-name'
+	
+	let name = $(`*[${k}]`, this.box).attr (k)
+
+	setTimeout (() => show_block (name), 10)
 
 }
