@@ -418,15 +418,21 @@ $.fn.w2reform = function (o) {
 $.fn.w2regrid = function (o) {
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
-    
-    if (o.src) {
-    
-    	var src = Array.isArray (o.src) ? o.src : [o.src]
-    	
-    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + src [0]
-    	
-    	if (src.length > 1) o.postData = src [1]
-    
+
+    let src = o.src; if (src) {
+
+    	if (Array.isArray (src)) {
+    		if (src.length > 1) o.postData = src [1]
+    		src = src [0]
+    	}
+
+    	let [type, part, id] = src.split ('/')
+
+    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + type
+
+    	if (part) o.url += '&part=' + part
+    	if (id)   o.url += '&id='   + id
+
     }
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
