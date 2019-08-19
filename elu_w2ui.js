@@ -294,6 +294,38 @@ $.fn.w2relayout = function (o) {
 
 $.fn.w2reform = function (o) {
 
+	if (!o.onRefresh && $_SESSION.get ('__read_only') != null) {
+
+		o.onRefresh = function (e) {        
+		
+			$('#w2ui-overlay').remove ()
+			$('<span id=w2ui-overlay>').appendTo ($('body')).hide ()
+
+			let f = w2ui [e.target]
+			let r = f.record        
+			let disabled = r.__read_only = $_SESSION.get ('__read_only')       
+			
+			e.done (function () {
+			
+				$('.w2ui-form input, textarea').prop ({disabled})
+				
+				let v = f.values ()
+
+				for (let field of f.fields) {
+					let h = field.onChange
+					if (h) h (v [field.name])
+				}
+				
+				$('#w2ui-overlay').remove ()
+
+				if (!disabled && f.focus > -1) f.fields [f.focus].$el.focus ()
+				
+			})
+
+		}
+
+	}
+
     function refreshButtons () {
         var $box = $(this.box)
         var data = this.record
@@ -1572,10 +1604,6 @@ function w2_confirm_open_tab (msg, url) {
 }
 
 function w2_waiting_panel () {
-
-darn ($('.w2ui-lock'))
-darn ($('.w2ui-lock').closest ('.w2ui-panel'))
-
 	let [ln, pn] = $('.w2ui-lock').closest ('.w2ui-panel').attr ('id').split ('_panel_')
 	let l = w2ui [ln.substr (7)]
 	l.unlock (pn)
