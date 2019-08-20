@@ -270,7 +270,7 @@ $.fn.w2relayout = function (o) {
 
 				$_LOCAL.set (key, name) 								
 
-				show_block (name)
+				e.tab.sync ? use.block (name) : show_block (name)
 
 			}
 
