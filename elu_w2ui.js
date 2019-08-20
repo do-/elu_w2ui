@@ -303,7 +303,7 @@ $.fn.w2reform = function (o) {
 
 			let f = w2ui [e.target]
 			let r = f.record        
-			let disabled = r.__read_only = $_SESSION.get ('__read_only')       
+			let disabled = r.__read_only = $_SESSION.delete ('__read_only')       
 			
 			e.done (function () {
 			
