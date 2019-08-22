@@ -310,11 +310,16 @@ $.fn.w2reform = function (o) {
 				$('.w2ui-form input, textarea').prop ({disabled})
 				
 				let v = f.values ()
+				
+				let backup_slideAsNeeded = $.fn.slideAsNeeded				
+				$.fn.slideAsNeeded = function (is) {this.toggle (!!is)}
 
 				for (let field of f.fields) {
 					let h = field.onChange
 					if (h) h (v [field.name])
 				}
+				
+				$.fn.slideAsNeeded = backup_slideAsNeeded
 				
 				$('#w2ui-overlay').remove ()
 
