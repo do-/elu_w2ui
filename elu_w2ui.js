@@ -890,18 +890,15 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
 w2obj.form.prototype.values = function () {
 
-    var result = {}
-    var r = this.record
+    let o = {}
+    let r = this.record
 
-    $.each (this.fields, function () {
+	for (let field of this.fields) {
+        let n = field.name
+        o [n] = normalizeValue (r [n], field.type)
+    }
 
-        var f = this
-        var n = f.name
-        result [n] = normalizeValue (r [n], f.type)
-
-    })
-
-    return result
+    return new FormValues (o)
 
 };
 
