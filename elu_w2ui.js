@@ -294,6 +294,22 @@ $.fn.w2relayout = function (o) {
 
 $.fn.w2reform = function (o) {
 
+	let fields = o.fields; if (fields) {
+	
+		let n2f = {}; for (let field of fields) n2f [field.name] = field
+		
+		$('input, textarea', this).each (function () {
+		
+			let field = n2f [this.name]; if (!this) return
+			
+			let $this = $(this)
+			
+			if ($this.attr ('required')) field.required = true
+
+		})
+
+	}
+
 	if (!o.onRefresh && $_SESSION.get ('__read_only') != null) {
 
 		o.onRefresh = function (e) {        
@@ -380,7 +396,7 @@ $.fn.w2reform = function (o) {
 
     }
     
-    let fields = o.fields; if (fields) {
+    if (fields) {
     
     	let observedFields = fields.filter (f => f.onChange); if (observedFields.length) {
     
