@@ -919,11 +919,10 @@ w2obj.form.prototype.values = function () {
 	for (let field of this.fields) {
         let n = field.name
         let v = normalizeValue (r [n], field.type)
-        if (field.required && v == null) die (n, 'Это поле обязательно для заполнения')
         o [n] = v
     }
 
-    return new FormValues (o)
+    return new FormValues (o, $(this.box))
 
 };
 
