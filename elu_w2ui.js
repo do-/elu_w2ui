@@ -300,11 +300,28 @@ $.fn.w2reform = function (o) {
 		
 		$('input, textarea', this).each (function () {
 		
-			let field = n2f [this.name]; if (!this) return
+			let field = n2f [this.name]; if (!field) return
+			
+			function setOption (k, v) {
+				if (!('options' in field)) field.options     = {}
+				if (!(k in field.options)) field.options [k] = v
+			}
+			
+			function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
 			
 			let $this = $(this)
 			
 			if ($this.attr ('required')) field.required = true
+			
+			let min = $this.attr ('min'); if (min) {			
+				if (is_date (min)) setOption ('start', dt_dmy (min));				
+				              else setOption ('min', min)
+			}
+
+			let max = $this.attr ('max'); if (max) {			
+				if (is_date (max)) setOption ('end', dt_dmy (max));				
+				              else setOption ('max', max)
+			}
 
 		})
 
