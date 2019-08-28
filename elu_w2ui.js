@@ -343,6 +343,8 @@ $.fn.w2reform = function (o) {
 	
 		let field = n2f [this.name]; if (!field) return
 		
+		if (this.tagName == 'TEXTAREA') field.type = 'textarea'
+		
 		function setOption (k, v) {
 			if (!('options' in field)) field.options     = {}
 			if (!(k in field.options)) field.options [k] = v
