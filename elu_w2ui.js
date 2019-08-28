@@ -324,8 +324,15 @@ $.fn.w2reform = function (o) {
 			else {
 			
 				let _field = _fields [field.name]; if (_field) {
+				
+					let precision = _field.DECIMAL_DIGITS
 
-					if (_field.TYPE == 'date') {
+					if (precision) {
+						field.type = 'float'
+						field.options.autoFormat = false
+						field.options.precision = precision
+					}
+					else if (_field.TYPE == 'date') {
 						field.type = 'date'
 					}
 					else if (/^(num|int)/.test (_field.TYPE)) {
