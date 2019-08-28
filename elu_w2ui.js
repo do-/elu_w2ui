@@ -294,16 +294,22 @@ $.fn.w2relayout = function (o) {
 
 $.fn.w2reform = function (o) {
 
+	let field_options = o.field_options || {}
+
 	if (!o.record) o.record = {}
 	
 	let _fields = o.record._fields || {}
+	
+	let n2f = {}
 
-	let fields = o.fields = (o.fields || []).map ((field) => {
+	let fields = o.fields = (o.fields || $('input, textarea', this).toArray ().map (i => i.name)).map ((field) => {
 
 		if (typeof field === 'string' || field instanceof String) field = {name: field}
+		
+		let op = field_options [field.name]; if (op) for (let k in op) field [k] = op [k]
 
-		if (!field.type) field.type = 'text'
-		if (!field.options) field.options = {}
+		if (!field.type)    field.type       = 'text'
+		if (!field.options) field.options    = {}
 		
 		if (field.voc)   field.items         = field.voc.items
 		if (field.items) field.options.items = field.items
@@ -332,22 +338,23 @@ $.fn.w2reform = function (o) {
 			}
 
 		}
+		
+		n2f [field.name] = field
 
 		return field
 
 	})
-		
-	let n2f = {}; for (let field of fields) n2f [field.name] = field
-	
+
 	$('input, textarea', this).each (function () {
 	
 		let field = n2f [this.name]; if (!field) {
 			if (this.type == 'hidden') fields.push ({name: this.name, type: 'hidden'})
 			return
 		}
-		
+
 		if (this.tagName == 'TEXTAREA') field.type = 'textarea'
-		
+		if (this.type    == 'hidden'  ) field.type = 'hidden'
+
 		function setOption (k, v) {
 			if (!('options' in field)) field.options     = {}
 			if (!(k in field.options)) field.options [k] = v
