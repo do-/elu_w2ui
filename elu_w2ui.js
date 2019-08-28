@@ -299,18 +299,25 @@ $.fn.w2reform = function (o) {
 	let _fields = o.record._fields || {}
 
 	let fields = o.fields = (o.fields || []).map ((field) => {
-	
+
 		if (typeof field === 'string' || field instanceof String) field = {name: field}
-		
+
 		if (!field.type) field.type = 'text'
-		
+		if (!field.options) field.options = {}
+
 		if (field.type == 'text') {
 
 			let _field = _fields [field.name]; 
 
 			if (_field) {
 
-				if (/^(num|int)/.test (_field.TYPE)) field.type = 'int'
+				if (_field.TYPE == 'date') {
+					field.type = 'date'
+				}
+				else if (/^(num|int)/.test (_field.TYPE)) {
+					field.type = 'int'
+					field.options.autoFormat = false
+				}
 
 			}
 
