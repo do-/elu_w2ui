@@ -370,6 +370,7 @@ $.fn.w2reform = function (o) {
 		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
 		
 		let $this = $(this)
+		if (field.type == 'date') $(this).attr ('placeholder', '')
 		
 		if ($this.attr ('required')) field.required = true
 		
