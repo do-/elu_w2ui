@@ -295,9 +295,30 @@ $.fn.w2relayout = function (o) {
 $.fn.w2reform = function (o) {
 
 	if (!o.record) o.record = {}
-	if (!o.fields) o.fields = []
+	
+	let _fields = o.record._fields || {}
 
-	let fields = o.fields; 
+	let fields = o.fields = (o.fields || []).map ((field) => {
+	
+		if (typeof field === 'string' || field instanceof String) field = {name: field}
+		
+		if (!field.type) field.type = 'text'
+		
+		if (field.type == 'text') {
+
+			let _field = _fields [field.name]; 
+
+			if (_field) {
+
+				if (/^(num|int)/.test (_field.TYPE)) field.type = 'int'
+
+			}
+
+		}		
+
+		return field
+
+	})
 		
 	let n2f = {}; for (let field of fields) n2f [field.name] = field
 	
