@@ -341,7 +341,10 @@ $.fn.w2reform = function (o) {
 	
 	$('input, textarea', this).each (function () {
 	
-		let field = n2f [this.name]; if (!field) return
+		let field = n2f [this.name]; if (!field) {
+			if (this.type == 'hidden') fields.push ({name: this.name, type: 'hidden'})
+			return
+		}
 		
 		if (this.tagName == 'TEXTAREA') field.type = 'textarea'
 		
