@@ -294,38 +294,39 @@ $.fn.w2relayout = function (o) {
 
 $.fn.w2reform = function (o) {
 
-	let fields = o.fields; if (fields) {
+	if (!o.record) o.record = {}
+	if (!o.fields) o.fields = []
+
+	let fields = o.fields; 
+		
+	let n2f = {}; for (let field of fields) n2f [field.name] = field
 	
-		let n2f = {}; for (let field of fields) n2f [field.name] = field
+	$('input, textarea', this).each (function () {
+	
+		let field = n2f [this.name]; if (!field) return
 		
-		$('input, textarea', this).each (function () {
+		function setOption (k, v) {
+			if (!('options' in field)) field.options     = {}
+			if (!(k in field.options)) field.options [k] = v
+		}
 		
-			let field = n2f [this.name]; if (!field) return
-			
-			function setOption (k, v) {
-				if (!('options' in field)) field.options     = {}
-				if (!(k in field.options)) field.options [k] = v
-			}
-			
-			function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
-			
-			let $this = $(this)
-			
-			if ($this.attr ('required')) field.required = true
-			
-			let min = $this.attr ('min'); if (min) {			
-				if (is_date (min)) setOption ('start', dt_dmy (min));				
-				              else setOption ('min', min)
-			}
+		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
+		
+		let $this = $(this)
+		
+		if ($this.attr ('required')) field.required = true
+		
+		let min = $this.attr ('min'); if (min) {			
+			if (is_date (min)) setOption ('start', dt_dmy (min));				
+			              else setOption ('min', min)
+		}
 
-			let max = $this.attr ('max'); if (max) {			
-				if (is_date (max)) setOption ('end', dt_dmy (max));				
-				              else setOption ('max', max)
-			}
+		let max = $this.attr ('max'); if (max) {			
+			if (is_date (max)) setOption ('end', dt_dmy (max));				
+			              else setOption ('max', max)
+		}
 
-		})
-
-	}
+	})
 
 	if (!o.onRefresh && $_SESSION.get ('__read_only') != null) {
 
@@ -412,30 +413,28 @@ $.fn.w2reform = function (o) {
         }
 
     }
+        
+    let observedFields = fields.filter (f => f.onChange); if (observedFields.length) {
     
-    if (fields) {
-    
-    	let observedFields = fields.filter (f => f.onChange); if (observedFields.length) {
-    
-    	let n2h = {}; for (f of observedFields) n2h [f.name] = f.onChange
-    
-    	let oldOnChange = o.onChange
-    
-    	o.onChange = function (e) {
-    	
-    		if (oldOnChange) oldOnChange (e)
-    	
-    		let h = n2h [e.target]
-    		
-    		if (!h) return
-    		
-    		var v = e.value_new
-    		    		
-    		h ('id' in v ? v.id : v)
+		let n2h = {}; for (f of observedFields) n2h [f.name] = f.onChange
 
-    	}
+		let oldOnChange = o.onChange
 
-    }}
+		o.onChange = function (e) {
+
+			if (oldOnChange) oldOnChange (e)
+
+			let h = n2h [e.target]
+
+			if (!h) return
+
+			var v = e.value_new
+
+			h ('id' in v ? v.id : v)
+
+		}
+		
+    }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
