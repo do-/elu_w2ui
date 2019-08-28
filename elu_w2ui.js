@@ -304,24 +304,34 @@ $.fn.w2reform = function (o) {
 
 		if (!field.type) field.type = 'text'
 		if (!field.options) field.options = {}
+		
+		if (field.voc)   field.items         = field.voc.items
+		if (field.items) field.options.items = field.items
 
 		if (field.type == 'text') {
+		
+			if (field.options.items) {
+			
+				field.type = 'list'
+				
+			}
+			else {
+			
+				let _field = _fields [field.name]; if (_field) {
 
-			let _field = _fields [field.name]; 
+					if (_field.TYPE == 'date') {
+						field.type = 'date'
+					}
+					else if (/^(num|int)/.test (_field.TYPE)) {
+						field.type = 'int'
+						field.options.autoFormat = false
+					}
 
-			if (_field) {
-
-				if (_field.TYPE == 'date') {
-					field.type = 'date'
 				}
-				else if (/^(num|int)/.test (_field.TYPE)) {
-					field.type = 'int'
-					field.options.autoFormat = false
-				}
-
+			
 			}
 
-		}		
+		}
 
 		return field
 
