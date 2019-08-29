@@ -332,9 +332,6 @@ $.fn.w2reform = function (o) {
 						field.options.autoFormat = false
 						field.options.precision = precision
 					}
-					else if (_field.TYPE == 'date') {
-						field.type = 'date'
-					}
 					else if (/^(num|int)/.test (_field.TYPE)) {
 						field.type = 'int'
 						field.options.autoFormat = false
@@ -370,6 +367,12 @@ $.fn.w2reform = function (o) {
 		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
 		
 		let $this = $(this)
+		
+		if (this.type == 'date') {
+			field.type = 'date'
+			$this.removeAttr ('type')
+		}
+		
 		if (field.type == 'date') $(this).attr ('placeholder', '')
 		
 		if ($this.attr ('required')) field.required = true
