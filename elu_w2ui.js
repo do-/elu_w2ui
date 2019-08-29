@@ -339,13 +339,13 @@ $.fn.w2reform = function (o) {
 		
 		let $this = $(this)
 		
-		switch (this.type) {
-		
+		if (field.type == 'text') switch (this.type) {
+
 			case "date":
 				field.type = 'date'
 				$this.removeAttr ('type')
 			break
-			
+
 			case "number":
 				let step = this.step
 				let dd = /^0\./.test (step) ? step.length - 2 : 0
@@ -357,6 +357,8 @@ $.fn.w2reform = function (o) {
 			break
 
 		}
+		
+		if (this.type == 'number') $(this).removeAttr ('type')
 				
 		if (field.type == 'date') $(this).attr ('placeholder', '')
 		
