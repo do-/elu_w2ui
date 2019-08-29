@@ -297,9 +297,7 @@ $.fn.w2reform = function (o) {
 	let field_options = o.field_options || {}
 
 	if (!o.record) o.record = {}
-	
-	let _fields = o.record._fields || {}
-	
+		
 	let n2f = {}
 
 	let fields = o.fields = (o.fields || $('input, textarea', this).toArray ().map (i => i.name)).map ((field) => {
@@ -313,35 +311,8 @@ $.fn.w2reform = function (o) {
 		
 		if (field.voc)   field.items         = field.voc.items
 		if (field.items) field.options.items = field.items
-
-		if (field.type == 'text') {
 		
-			if (field.options.items) {
-			
-				field.type = 'list'
-				
-			}
-			else {
-			
-				let _field = _fields [field.name]; if (_field) {
-				
-					let precision = _field.DECIMAL_DIGITS
-
-					if (precision) {
-						field.type = 'float'
-						field.options.autoFormat = false
-						field.options.precision = precision
-					}
-					else if (/^(num|int)/.test (_field.TYPE)) {
-						field.type = 'int'
-						field.options.autoFormat = false
-					}
-
-				}
-			
-			}
-
-		}
+		if (field.type == 'text' && field.options.items) field.type = 'list'
 		
 		n2f [field.name] = field
 
@@ -368,11 +339,25 @@ $.fn.w2reform = function (o) {
 		
 		let $this = $(this)
 		
-		if (this.type == 'date') {
-			field.type = 'date'
-			$this.removeAttr ('type')
-		}
+		switch (this.type) {
 		
+			case "date":
+				field.type = 'date'
+				$this.removeAttr ('type')
+			break
+			
+			case "number":
+				let step = this.step
+				let dd = /^0\./.test (step) ? step.length - 2 : 0
+				field.type = dd > 0 ? 'float' : 'int'
+				if (step && !dd) setOption ('step', parseInt (step))
+				if (dd) setOption ('precision', dd)
+				setOption ('autoFormat', false)
+				$this.removeAttr ('type')
+			break
+
+		}
+				
 		if (field.type == 'date') $(this).attr ('placeholder', '')
 		
 		if ($this.attr ('required')) field.required = true
