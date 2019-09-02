@@ -358,8 +358,12 @@ $.fn.w2reform = function (o) {
 
 		}
 		
-		if (this.type == 'number') $(this).removeAttr ('type')
-				
+		switch (this.type) {
+			case 'number':
+			case 'date':
+				$(this).removeAttr ('type')
+		}
+
 		if (field.type == 'date') {
 			$this.attr ('placeholder', '')
 			if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
