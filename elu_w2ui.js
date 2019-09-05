@@ -413,7 +413,7 @@ $.fn.w2reform = function (o) {
 				$('#w2ui-overlay').remove ()
 
 				if (!disabled && f.focus > -1) f.fields [f.focus].$el.focus ()
-				
+
 			})
 
 		}
@@ -494,6 +494,21 @@ $.fn.w2reform = function (o) {
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     var f = this.w2form (o)
+    
+	$('.w2ui-field-helper input').each (function () {
+
+		let $this = $(this)
+
+		let style = $this.attr ('style')
+			.split (/; */)
+			.filter (s => s && !/width:/.test (s))
+			.join  ('; ')
+
+		style += '; width:' + $this.parent().width () + 'px !important'
+
+		$this.attr ('style', style)
+
+	})
 
     f.on('refresh:after', function() {
 
