@@ -485,7 +485,7 @@ $.fn.w2reform = function (o) {
 
 			var v = e.value_new
 
-			h ('id' in v ? v.id : v)
+			h (v instanceof Object && 'id' in v ? v.id : v)
 
 		}
 		
