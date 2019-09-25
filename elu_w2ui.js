@@ -1753,15 +1753,17 @@ async function w2_upload_files_from_popup (o) {
     $progress.prop ({max: sum_size, value: 0}).show ()
     w2utils.lock ($('#w2ui-popup .w2ui-page'))
 
-    o.onloadend  =    ()  => n --
-    o.onprogress = (x, y) => {sum += portion; $progress.val (sum)}	
+	let ids = []
+
+    o.onloadend  =   (id) => {n --; ids.push (id)}
+    o.onprogress = (x, y) => {sum += portion; $progress.val (sum)}
 
     return new Promise (function (resolve, reject) {    
 
 		let check = setInterval (function () {
 			if (n) return
 			clearInterval (check)
-			resolve ()
+			resolve (ids)
 		}, 100)
 
 		for (let file of files) Base64file.upload (file, o)    
