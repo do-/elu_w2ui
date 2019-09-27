@@ -4,6 +4,7 @@ w2utils.settings = {
     "locale"         : "ru-RU",
     "dateFormat"     : "dd.mm.yyyy",
     "timeFormat"     : "h24",
+    "datetimeFormat" : "dd.mm.yyyy hh24:mi",
     "currency"       : "^[-+]?[0-9]*[\\,]?[0-9]+$",
     "currencyPrefix" : "",
     "currencySuffix" : " р.",
@@ -15,6 +16,8 @@ w2utils.settings = {
     "fullmonths"     : ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
     "shortdays"      : ["П", "В", "С", "Ч", "П", "С","В"],
     "fulldays"       : ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"],
+    "dateStartYear"  : 1000,
+    "dateEndYear"    : 3000,
     "phrases" : {
         "Add new record": "Добавить новую запись",
         "Add New": "Добавить",
@@ -31,6 +34,7 @@ w2utils.settings = {
         "Column": "Колонка",
         "Confirmation": "Подтверждение",
         "contains": "содержит",
+        "Current Date & Time": "Текущие дата и время",
         "Delete Confirmation": "Подтверждение удаления",
         "Delete selected records": "Удалить выбранные записи",
         "Delete": "Удалить",
@@ -83,6 +87,8 @@ w2utils.settings = {
         "Search": "Поиск",
         "Search...": "Поиск...",
         "sec": "сек",
+        "Select Hour": "Выберите час",
+        "Select Minute": "Выберите минуты",
         "Select Search Field": "Выбрать поля поиска",
         "selected": "выделено",
         "Server Response": "Ответ сервера",
@@ -243,27 +249,182 @@ w2utils.unlockAll = function () {
 }
 
 $.fn.w2relayout = function (o) {
-
-     $.each (o.panels, function() {
-
-        if (this.tabs && this.tabs.tabs) {
-
-            $.each (this.tabs.tabs, function () {
-                if (!('tooltip' in this))
-                    this.tooltip = ""
-            })
-
-        }
-
-    })
+    
+    for (let panel of o.panels) {
+    	let tabs = panel.tabs; if (!tabs) continue
+    	if (tabs.tabs) tabs = tabs.tabs
+    	for (let tab of tabs) if (!('tooltip' in tab)) tab.tooltip = ""
+    }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
+    
+    if (!o.onRender) o.onRender = function (e) {
+
+    	var layout = this
+
+	    for (let panel of layout.panels) {
+	    
+			let tabs = panel.tabs; if (!tabs) continue
+			let key  = tabs.name
+
+			tabs.onClick = function (e) {
+
+				let name = e.tab.id
+
+				layout.content (panel.type, '')
+				layout.lock    (panel.type, 'Загрузка...', true)
+
+				$_LOCAL.set (key, name) 								
+
+				e.tab.sync ? use.block (name) : show_block (name)
+
+			}
+
+			e.done (function () {
+
+				let id = $_LOCAL.get (key)
+
+				if (!tabs.get (id)) id = tabs.tabs [0].id
+
+				tabs.click (id)
+
+			})
+		
+		}
+    	
+    }
 
     return this.w2layout (o)
 
 }
 
 $.fn.w2reform = function (o) {
+
+	let field_options = o.field_options || {}
+
+	if (!o.record) o.record = {}
+		
+	let n2f = {}
+
+	let fields = o.fields = (o.fields || $('input, textarea', this).toArray ().map (i => i.name)).map ((field) => {
+
+		if (typeof field === 'string' || field instanceof String) field = {name: field}
+		
+		let op = field_options [field.name]; if (op) for (let k in op) field [k] = op [k]
+
+		if (!field.type)    field.type       = 'text'
+		if (!field.options) field.options    = {}
+		
+		if (field.voc)   field.items         = field.voc.items
+		if (field.items) field.options.items = field.items
+		
+		if (field.type == 'text' && field.options.items) field.type = 'list'
+		
+		n2f [field.name] = field
+
+		return field
+
+	})
+
+	$('input, textarea', this).each (function () {
+	
+		let field = n2f [this.name]; if (!field) {
+			if (this.type == 'hidden') fields.push ({name: this.name, type: 'hidden'})
+			return
+		}
+
+		if (this.tagName == 'TEXTAREA') field.type = 'textarea'
+		if (this.type    == 'hidden'  ) field.type = 'hidden'
+
+		function setOption (k, v) {
+			if (!('options' in field)) field.options     = {}
+			if (!(k in field.options)) field.options [k] = v
+		}
+		
+		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
+		
+		let $this = $(this)
+		
+		if (field.type == 'text') switch (this.type) {
+
+			case "date":
+				field.type = 'date'
+				$this.removeAttr ('type')
+			break
+
+			case "number":
+				let step = this.step
+				let dd = /^0\./.test (step) ? step.length - 2 : 0
+				field.type = dd > 0 ? 'float' : 'int'
+				if (step && !dd) setOption ('step', parseInt (step))
+				if (dd) setOption ('precision', dd)
+				setOption ('autoFormat', false)
+				$this.removeAttr ('type')
+			break
+
+		}
+		
+		switch (this.type) {
+			case 'number':
+			case 'date':
+				$(this).removeAttr ('type')
+		}
+
+		if (field.type == 'date') {
+			$this.attr ('placeholder', '')
+			if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
+		}
+		
+		if ($this.attr ('required')) field.required = true
+		
+		let min = $this.attr ('min'); if (min) {			
+			if (is_date (min)) setOption ('start', dt_dmy (min));				
+			              else setOption ('min', min)
+		}
+
+		let max = $this.attr ('max'); if (max) {			
+			if (is_date (max)) setOption ('end', dt_dmy (max));				
+			              else setOption ('max', max)
+		}
+
+	})
+
+	if (!o.onRefresh && $_SESSION.get ('__read_only') != null) {
+
+		o.onRefresh = function (e) {        
+		
+			$('#w2ui-overlay').remove ()
+			$('<span id=w2ui-overlay>').appendTo ($('body')).hide ()
+
+			let f = w2ui [e.target]
+			let r = f.record        
+			let disabled = r.__read_only = $_SESSION.delete ('__read_only')       
+			
+			e.done (function () {
+			
+				$('.w2ui-form input, textarea').prop ({disabled})
+				
+				let v = f.values ()
+				
+				let backup_slideAsNeeded = $.fn.slideAsNeeded				
+				$.fn.slideAsNeeded = function (is) {this.toggle (!!is)}
+
+				for (let field of f.fields) {
+					let h = field.onChange
+					if (h) h (v [field.name])
+				}
+				
+				$.fn.slideAsNeeded = backup_slideAsNeeded
+				
+				$('#w2ui-overlay').remove ()
+
+				if (!disabled && f.focus > -1) f.fields [f.focus].$el.focus ()
+
+			})
+
+		}
+
+	}
 
     function refreshButtons () {
         var $box = $(this.box)
@@ -313,10 +474,47 @@ $.fn.w2reform = function (o) {
         }
 
     }
+        
+    let observedFields = fields.filter (f => f.onChange); if (observedFields.length) {
+    
+		let n2h = {}; for (f of observedFields) n2h [f.name] = f.onChange
+
+		let oldOnChange = o.onChange
+
+		o.onChange = function (e) {
+
+			if (oldOnChange) oldOnChange (e)
+
+			let h = n2h [e.target]
+
+			if (!h) return
+
+			var v = e.value_new
+
+			h (v instanceof Object && 'id' in v ? v.id : v)
+
+		}
+		
+    }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     var f = this.w2form (o)
+    
+	$('.w2ui-field-helper input').each (function () {
+
+		let $this = $(this)
+
+		let style = $this.attr ('style')
+			.split (/; */)
+			.filter (s => s && !/width:/.test (s))
+			.join  ('; ')
+
+		style += '; width:' + $this.parent().width () + 'px !important'
+
+		$this.attr ('style', style)
+
+	})
 
     f.on('refresh:after', function() {
 
@@ -335,6 +533,22 @@ $.fn.w2reform = function (o) {
 $.fn.w2regrid = function (o) {
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
+
+    let src = o.src; if (src) {
+
+    	if (Array.isArray (src)) {
+    		if (src.length > 1) o.postData = src [1]
+    		src = src [0]
+    	}
+
+    	let [type, part, id] = src.split ('/')
+
+    	o.url = $_SESSION.get ('dynamicRoot') + '/?type=' + type
+
+    	if (part) o.url += '&part=' + part
+    	if (id)   o.url += '&id='   + id
+
+    }
 
     if (o.url && !o.onLoad) o.onLoad = dia2w2ui
 
@@ -381,7 +595,7 @@ $.fn.w2regrid = function (o) {
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
 
     })
-
+    
     return this.w2grid (o)
 
 }
@@ -394,27 +608,14 @@ $.fn.w2uppop = function (o, done) {
     o.height = $this.attr ('data-popup-height')
     o.title  = $this.attr ('data-popup-title')
 
-    o.onOpen = function (e) { e.done (function () {
+    if (!$('button[data-hotkey="Ctrl-Enter"]').length) {
+	    var $button = $('button', $this)
+	    if ($button.length == 1) $button.attr ('data-hotkey', 'Ctrl-Enter')
+    }    
+    
+	o.onOpen = function (e) {e.done (done)}
 
-        done (e)
-
-        var pop = $('#w2ui-popup')
-
-        pop.keyup (function (e) {
-
-            if (e.key == 'Enter' && e.ctrlKey && !e.altKey && !e.shiftKey) {
-
-                var b = $('button:first', pop)
-
-                b.focus (function () {b.click ()}).focus ()
-
-            }
-
-        })
-
-    })}
-
-    return this.w2popup ('open', o);
+    return this.w2popup ('open', o)
 
 }
 
@@ -804,18 +1005,16 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
 w2obj.form.prototype.values = function () {
 
-    var result = {}
-    var r = this.record
+    let o = {}
+    let r = this.record
 
-    $.each (this.fields, function () {
+	for (let field of this.fields) {
+        let n = field.name
+        let v = normalizeValue (r [n], field.type)
+        o [n] = v
+    }
 
-        var f = this
-        var n = f.name
-        result [n] = normalizeValue (r [n], f.type)
-
-    })
-
-    return result
+    return new FormValues (o, $(this.box))
 
 };
 
@@ -1498,3 +1697,91 @@ function w2uiMultiButton() {
     }
 
 }
+
+function w2_popup_form () {
+	return w2ui [$('.w2ui-popup .w2ui-form').attr ('name')]
+}
+
+function w2_panel_form () {
+	return w2ui [$('.w2ui-panel-content.w2ui-form').attr ('name')]
+}
+
+function w2_first_grid () {
+	return w2ui [$('.w2ui-grid').attr ('name')]
+}
+
+function w2_close_popup_reload_grid () {
+
+	w2popup.close () 
+	
+	let g = w2_first_grid (); g.reload (g.refresh)
+	
+}
+
+function w2_confirm_open_tab (msg, url) {
+	w2confirm (msg).yes (() => openTab (url))
+}
+
+function w2_waiting_panel () {
+	let [ln, pn] = $('.w2ui-lock').closest ('.w2ui-panel').attr ('id').split ('_panel_')
+	let l = w2ui [ln.substr (7)]
+	l.unlock (pn)
+	return l.el (pn)
+}
+
+async function w2_upload_files_from_popup (o) {
+
+	let f = w2_popup_form ()
+	let r = f.record
+	
+    let files = (r [f.fields.filter (i => i.type == 'file') [0].name] || []).map (f => f.file)
+    
+    let n = files.length; if (!n) return
+
+    var sum_size = 0
+        
+    for (let file of files) {    
+        if (!file.type) file.type = "application/octet-stream"        
+        sum_size += file.size
+    }    
+    
+    let portion = 128 * 1024;
+    let sum = 0;
+   
+    $('#w2ui-popup button').hide ()
+    let $progress = $('#w2ui-popup progress')        
+    $progress.prop ({max: sum_size, value: 0}).show ()
+    w2utils.lock ($('#w2ui-popup .w2ui-page'))
+
+	let ids = []
+
+    o.onloadend  =   (id) => {n --; ids.push (id)}
+    o.onprogress = (x, y) => {sum += portion; $progress.val (sum)}
+
+    return new Promise (function (resolve, reject) {    
+
+		let check = setInterval (function () {
+			if (n) return
+			clearInterval (check)
+			resolve (ids)
+		}, 100)
+
+		for (let file of files) Base64file.upload (file, o)    
+
+    })
+
+}
+
+w2obj.form.prototype.reload_block =  function () {
+	
+	this.lock ()
+	
+	let k = 'data-block-name'
+	
+	let name = $(`*[${k}]`, this.box).attr (k)
+
+	setTimeout (() => show_block (name), 10)
+
+}
+
+1;
