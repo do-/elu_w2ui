@@ -739,7 +739,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 var field = fields.find(function(i) { return i.name === key })
                 var value = row[key]
 
-                if (typeof field.render === 'function') value = field.render(row)
+                if (typeof field.render === 'function') value = field.render (row, null, null, value)
 
                 if (/^dt/.test(key) && value) {
 
