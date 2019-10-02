@@ -715,7 +715,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
         var fields_names = fields.map(function(i) { return i.name })
 
-        return rows.map(function(row) {
+        return rows.map(function(row, ind) {
 
             var keys   = Object.keys(row)
             var values = []
@@ -734,12 +734,12 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
             })
 
-            fields_names.forEach(function(key) {
+            fields_names.forEach(function(key, col) {
 
                 var field = fields.find(function(i) { return i.name === key })
                 var value = row[key]
 
-                if (typeof field.render === 'function') value = field.render (row, null, null, value)
+                if (typeof field.render === 'function') value = field.render(row, ind, col, value)
 
                 if (/^dt/.test(key) && value) {
 
@@ -786,7 +786,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
                 var cnt     = data.cnt
                 var portion = data.portion || grid.limit
-                var total   = data.total
+                var total   = data.total   || grid.summary[0]
 
                 delete data.cnt
                 delete data.portion
@@ -804,6 +804,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
             }
         })
+
     }
 
     function done(total) {
@@ -890,7 +891,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
     var rows = make_rows(grid.records)
 
-    if (grid.url) iterator(grid.records.length)
+    if (grid.url && rows.length !== grid.total) iterator(grid.records.length)
     else done(grid.summary[0])
 
 }
