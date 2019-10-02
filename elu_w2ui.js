@@ -786,7 +786,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
                 var cnt     = data.cnt
                 var portion = data.portion || grid.limit
-                var total   = data.total   || grid.total
+                var total   = data.total   || grid.summary[0]
 
                 delete data.cnt
                 delete data.portion
@@ -804,6 +804,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
             }
         })
+
     }
 
     function done(total) {
