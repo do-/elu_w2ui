@@ -963,7 +963,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
                 row.forEach(function(val, idx) {
 
                     var field    = data.fields[idx]
-                    var isNumber = field.render === 'money' || /^float/.test(field.render)
+                    var type     = typeof field.render === 'function' ? field.type : field.render
+                    var isNumber = /^(int|float|number|money)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
                     html += '<td' + classes + '>' + value(val, isNumber) + '</td>'
@@ -980,7 +981,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
                 data.fields.forEach(function(field) {
 
-                    var isNumber = field.render === 'money' || /^float/.test(field.render)
+                    var type     = typeof field.render === 'function' ? field.type : field.render
+                    var isNumber = /^(int|float|number|money)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
                     html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber) + '</b></td>'
