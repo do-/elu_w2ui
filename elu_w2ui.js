@@ -945,6 +945,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
                 data.head[i].forEach(function(th) {
 
+                    if (th.colspan == 0) return;
+
                     var colspan = th.colspan || 1
                     var rowspan = th.rowspan || 1
 
