@@ -1012,12 +1012,16 @@ w2obj.form.prototype.values = function () {
 
     let o = {}
     let r = this.record
+    let _fields = {}
 
 	for (let field of this.fields) {
         let n = field.name
         let v = normalizeValue (r [n], field.type)
         o [n] = v
+        _fields [field.name] = field
     }
+
+    o._fields = _fields
 
     return new FormValues (o, $(this.box))
 
