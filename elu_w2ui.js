@@ -1,4 +1,5 @@
 w2utils.settings = {
+    autocomplete     : "off",
     weekStarts       : "M",
     "dataType"       : "JSON",
     "locale"         : "ru-RU",
@@ -344,6 +345,18 @@ $.fn.w2reform = function (o) {
 		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
 		
 		let $this = $(this)
+
+		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (darn (this.type)) {
+
+			case 'password':
+				$this.attr ('autocomplete', 'new-password')
+				break
+
+			case 'text':
+				$this.attr ('autocomplete', 'off')
+				break
+
+		}
 		
 		if (field.type == 'text') switch (this.type) {
 
