@@ -1713,8 +1713,48 @@ function w2uiMultiButton() {
 
     }
 
+    function hide(name) {
+
+        var $button = $('button[name="' + name + '"]');
+        var $parent = $button.parent();
+
+        $button.hide();
+
+        var count = 0;
+
+        $('button', $parent).each(function() {
+            if ($(this).css('display') === 'none') count++;
+        });
+
+        var $main = $('.w2ui-btn.multi[data-id="' + $parent.attr('data-id') + '"]');
+
+        if (count === $('button', $parent).length) $main.hide();
+        else $main.show();
+
+    }
+
+    function show(name) {
+
+        var $button = $('button[name="' + name + '"]');
+        var $parent = $button.parent();
+
+        $button.show();
+
+        var count = 0;
+
+        $('button', $parent).each(function() {
+            if ($(this).css('display') === 'none') count++;
+        });
+
+        var $main = $('.w2ui-btn.multi[data-id="' + $parent.attr('data-id') + '"]');
+        $main.show();
+
+    }
+
     return {
         init        : init,
+        show        : show,
+        hide        : hide,
         setHandlers : setHandlers
     }
 
