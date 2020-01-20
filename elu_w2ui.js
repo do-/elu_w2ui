@@ -1615,32 +1615,6 @@ function w2uiMultiButton() {
         var rect  = this.getClientRects()[0]
         var id    = $this.attr('data-id')
 
-        if (!id) {
-
-            id = (new Date()).getTime()
-            $this.attr('data-id', id)
-
-            $('body').append(
-                $('<div/>', { 'data-id': id, class: 'w2ui-multi-btn-wrapper'})
-                    .append($this.data('buttons'))
-            )
-
-            $('.w2ui-multi-btn-wrapper[data-id=' + id + '] .w2ui-btn[name]').click(function(e) {
-
-                var $this  = $(this)
-                var id     = $this.closest('.w2ui-multi-btn-wrapper').attr('data-id')
-                var fnName = $this.attr('name') + '_' + $_REQUEST.type
-
-                $('.w2ui-btn.multi[data-id=' + id + ']')
-                    .data('toggleOnBlur', false)
-                    .trigger('click')
-
-                if ($_DO[fnName]) $_DO[fnName].call(this, e)
-
-            })
-
-        }
-
         var $wrapper = $('.w2ui-multi-btn-wrapper[data-id=' + id + ']')
 
         $wrapper
@@ -1695,17 +1669,35 @@ function w2uiMultiButton() {
 
         $('.w2ui-multi-btn').each(function() {
 
+            var id       = String(Math.random()).replace(/^\d\./, '')
             var $div     = $(this)
             var $buttons = $div.children()
-            var $button  = $('<button/>', { class: 'w2ui-btn', html: $div.attr('label') })
+            var $button  = $('<button/>', { 'data-id': id, class: 'w2ui-btn', html: $div.attr('label') })
 
-            if (!$buttons.length) return $div.remove()
-            if ($div.is(':hidden')) return
+            if (!$buttons.length) $button.hide();
 
             $div.replaceWith($button)
 
             $button.addClass('multi')
-            $button.data('buttons', $buttons)
+
+            $('body').append(
+                $('<div/>', { 'data-id': id, class: 'w2ui-multi-btn-wrapper'})
+                    .append($buttons)
+            )
+
+            $('.w2ui-multi-btn-wrapper[data-id=' + id + '] .w2ui-btn[name]').click(function(e) {
+
+                var $this  = $(this)
+                var id     = $this.closest('.w2ui-multi-btn-wrapper').attr('data-id')
+                var fnName = $this.attr('name') + '_' + $_REQUEST.type
+
+                $('.w2ui-btn.multi[data-id=' + id + ']')
+                    .data('toggleOnBlur', false)
+                    .trigger('click')
+
+                if ($_DO[fnName]) $_DO[fnName].call(this, e)
+
+            })
 
             setHandlers()
 
