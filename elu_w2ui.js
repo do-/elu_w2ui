@@ -1056,17 +1056,17 @@ w2obj.form.prototype.values = function () {
 
 function w2field_voc(data) {
 
-    var $view = $('<span> \
-        <div id="w2ui-field-voc-page"> \
-            <div id="w2ui-field-voc-select-grid"></div> \
-            <div>Выбранные элементы</div> \
-            <div id="w2ui-field-voc-selected-grid"></div> \
-        </div> \
-        <div id="w2ui-field-voc-page-buttons"> \
-            <button class="w2ui-btn">Использовать выбранные</button> \
-            <button class="w2ui-btn">Очистить выбранные значения</button> \
-        </div> \
-    </span>');
+    var $view = $('<span>' +
+        '<div id="w2ui-field-voc-page">' +
+            '<div id="w2ui-field-voc-select-grid"></div>' +
+            '<div>Выбранные элементы</div>' +
+            '<div id="w2ui-field-voc-selected-grid"></div>' +
+        '</div>' +
+        '<div id="w2ui-field-voc-page-buttons">' +
+            '<button class="w2ui-btn">Использовать выбранные</button>' +
+            '<button class="w2ui-btn">Очистить выбранные значения</button>' +
+        '</div>' +
+    '</span>');
 
     var _default = {
         columns: [{
@@ -1246,6 +1246,7 @@ function w2field_voc(data) {
                 w2SelectedGrid = $selectedGrid.w2regrid({
                     name: 'selectedGrid',
                     show: {
+                        footer        : true,
                         toolbar       : false,
                         columnHeaders : false
                     },
@@ -1346,6 +1347,7 @@ function w2field_voc(data) {
                 w2SelectGridOptions = {
                     name: 'selectGrid',
                     show: {
+                        footer         : true,
                         toolbar        : true,
                         selectColumn   : options.multiselect,
                         toolbarColumns : false,
@@ -1400,12 +1402,19 @@ function w2field_voc(data) {
                         }
                     },
                     onSelect: function(e) {
-                        this.toolbar.enable('select');
+                        e.onComplete = function() {
+                            w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные (' + this.getSelection().length + ')' });
+                            this.toolbar.enable('select');
+                        }.bind(this);
                     },
                     onUnselect: function(e) {
-                        if (this.getSelection().length === 1 && this.getSelection()[0] == e.recid) this.toolbar.disable('select');
+                        if (this.getSelection().length === 1 && this.getSelection()[0] == e.recid) {
+                            w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные'  });
+                            this.toolbar.disable('select');
+                        }
                     },
                     onSearch: function(e) {
+
                         if (this.url)
                             this.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
 
@@ -1421,7 +1430,6 @@ function w2field_voc(data) {
                     onRequest : function (e) {
 
                         requestLimit = e.postData.limit;
-
                         e.postData.limit = e.postData.limit + selectedIds.length;
 
                     },
@@ -1446,10 +1454,10 @@ function w2field_voc(data) {
                         }
 
                         var data = {
-                                status : json.status,
-                                total  : -1,
-                                records: []
-                                //json.content.cnt,
+                            status : json.status,
+                            total  : -1,
+                            records: []
+                            //json.content.cnt,
                         };
 
                         var records = dia2w2uiRecords(json.content[recordsKey]);
