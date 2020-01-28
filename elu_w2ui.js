@@ -1162,13 +1162,19 @@ function w2field_voc(data) {
 
     function refreshGrids(ids, action, requestOff) {
 
-        if (action === 'add') selectedIds = selectedIds.concat(ids);
-        else selectedIds = selectedIds.filter(function(id) { return !ids.includes(id); });
+        if (action === 'add') {
+            selectedIds = selectedIds.concat(ids);
+            w2ui.selectGrid.total -= ids.length;
+        } else {
+            selectedIds = selectedIds.filter(function(id) { return !ids.includes(id); });
+            w2ui.selectGrid.total += ids.length;
+        }
 
         selectedIds = selectedIds.map(function(id) { return id.toString(); });
 
         if (options.multiselect) {
             w2ui.selectedGrid.records = w2ui.selectGrid.allRecords.filter(function(record) { return selectedIds.includes(record.id.toString()); });
+            w2ui.selectedGrid.total  = w2ui.selectedGrid.records.length;
             w2ui.selectedGrid.refresh();
         }
 
@@ -1389,16 +1395,18 @@ function w2field_voc(data) {
                     postData    : options.postData,
 
                     onDblClick: function(e) {
-                        if (options.multiselect) {
-                            var ids = [e.recid.toString()];
+                        e.onComplete = function() {
+                            if (options.multiselect) {
+                                var ids = [e.recid.toString()];
 
-                            this.selectNone();
-                            refreshGrids(ids, 'add');
+                                this.selectNone();
+                                refreshGrids(ids, 'add');
+                                w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные' });
+                                $clearButton.attr('disabled', true);
 
-                            $clearButton.attr('disabled', false);
-
-                        } else {
-                            returnValues.call(this, e);
+                            } else {
+                                returnValues.call(this, e);
+                            }
                         }
                     },
                     onSelect: function(e) {
@@ -1408,9 +1416,11 @@ function w2field_voc(data) {
                         }.bind(this);
                     },
                     onUnselect: function(e) {
-                        if (this.getSelection().length === 1 && this.getSelection()[0] == e.recid) {
-                            w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные'  });
-                            this.toolbar.disable('select');
+                        e.onComplete = function() {
+                            if (this.getSelection().length === 0) {
+                                w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные' });
+                                this.toolbar.disable('select');
+                            }
                         }
                     },
                     onSearch: function(e) {
@@ -1438,6 +1448,9 @@ function w2field_voc(data) {
                         var json       = JSON.parse(e.xhr.responseText),
                             recordsKey = options.recordsKey;
 
+                        var total = json.content.cnt === void 0 ? -1 : json.content.cnt;
+                        if (total > 0 && w2ui.selectedGrid) total -= w2ui.selectedGrid.total;
+
                         if (!recordsKey) {
                             var excludeKeys = ['cnt', 'portion', 'total'],
                                 keys = Object.keys(json.content).filter(function(i) { return !excludeKeys.includes(i) })
@@ -1455,7 +1468,7 @@ function w2field_voc(data) {
 
                         var data = {
                             status : json.status,
-                            total  : -1,
+                            total  : total,
                             records: []
                             //json.content.cnt,
                         };
