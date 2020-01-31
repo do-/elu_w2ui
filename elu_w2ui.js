@@ -1420,6 +1420,8 @@ function w2field_voc(data) {
                             if (this.getSelection().length === 0) {
                                 w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные' });
                                 this.toolbar.disable('select');
+                            } else {
+                                w2ui.selectGrid_toolbar.set('select', { text: 'Добавить выбранные (' + this.getSelection().length + ')' });
                             }
                         }
                     },
@@ -1449,7 +1451,7 @@ function w2field_voc(data) {
                             recordsKey = options.recordsKey;
 
                         var total = json.content.cnt === void 0 ? -1 : json.content.cnt;
-                        if (total > 0 && w2ui.selectedGrid) total -= w2ui.selectedGrid.total;
+                        if (total > 0) total -= selectedIds.length;
 
                         if (!recordsKey) {
                             var excludeKeys = ['cnt', 'portion', 'total'],
@@ -1471,25 +1473,23 @@ function w2field_voc(data) {
                             total  : total,
                             records: []
                             //json.content.cnt,
-                        };
-
-                        var records = dia2w2uiRecords(json.content[recordsKey]);
+                        }
 
                         if (!this.allRecords) this.allRecords = [];
 
+                        var records = dia2w2uiRecords(json.content[recordsKey]).filter(function(row) {
+                            return this.allRecords.findIndex(function(i) { return i.id == row.id; }) === -1;
+                        }.bind(this));
+
                         this.allRecords = this.allRecords.concat(records);
-                        this.allRecords = this.allRecords.reduce(function(ar, item) {
-
-                            var index = ar.findIndex(function(i) { return i.id == item.id; });
-
-                            if (index < 0) ar.push(item);
-                            return ar;
-
-                        }, []);
 
                         var cnt = 0;
 
-                        records = records.filter(function(i) { return !selectedIds.includes(i.id.toString()) })
+                        records = this.allRecords.filter(function(i) {
+                            if (selectedIds.findIndex(function(id) { return i.id == id; }) !== -1) return false;
+                            if (this.records.findIndex(function(j) { return i.id == j.id; }) !== -1) return false;
+                            return true;
+                        }.bind(this));
 
                         for (var i = records.length - 1; i >= requestLimit; i --)
                             records.pop ()
