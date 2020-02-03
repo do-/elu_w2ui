@@ -1430,11 +1430,11 @@ function w2field_voc(data) {
                         if (this.url)
                             this.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
 
-                        e.searchData.forEach(function(field) {
-                            if (field.type === 'text') field.operator = 'contains';
-                        });
-
-                        this.postData.search = e.searchData;
+                        if (options.onSearch) options.onSearch.call(this, e);
+                        else {
+                            e.searchData.forEach(function(field) { if (field.type === 'text') field.operator = 'contains'; });
+                            this.postData.search = e.searchData;
+                        }
 
                         addToolbarToSearch();
 
