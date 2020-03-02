@@ -909,9 +909,13 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
 }
 
-w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
+w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
-    var grid = this
+    if (!options) options = {}
+
+    var grid  = this
+    var index = 0
+    var lineNumbers = grid.show.lineNumbers && !options.disableLineNumbers
 
     grid.lock ('Экспорт данных...')
 
@@ -949,12 +953,15 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
         function(data) {
 
             var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+            var multiRows = grid.columnGroups.length !== 0
 
             for (var i = 0; i <= 1; i++) {
 
                 if (!data.head[i]) continue
 
                 html += '<tr>'
+
+                if (lineNumbers && (multiRows ? i === 0 : i === 1)) html += '<th rowspan="' + (multiRows ? 2 : 1) + '">' + (options.lineNumbersSymbol || '№') +'</th>'
 
                 data.head[i].forEach(function(th) {
 
@@ -975,6 +982,13 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
                 html += '<tr>'
 
+                if (lineNumbers) {
+
+                    index++
+                    html += '<td>' + index + '</td>'
+
+                }
+
                 row.forEach(function(val, idx) {
 
                     var field    = data.fields[idx]
@@ -993,6 +1007,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
             if (data.total) {
 
                 html += '<tr>'
+
+                if (lineNumbers) html += '<td></td>'
 
                 data.fields.forEach(function(field) {
 
