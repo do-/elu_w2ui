@@ -1141,7 +1141,7 @@ function w2field_voc(data) {
 
             $field = $('#' + options.fieldID);
 
-            // $('.w2ui-field-helper.w2ui-list', $field.parent()).remove();
+            if ($field.closest('.w2ui-grid-searches')) $('.w2ui-field-helper.w2ui-list', $field.parent()).remove();
 
             $field.w2field(
                 'voc',
@@ -1177,6 +1177,8 @@ function w2field_voc(data) {
     var selectedIds = selected.length ? selected.map(function(item) { return item.id.toString(); }) : [];
 
     function refreshGrids(ids, action, requestOff) {
+
+        if (!ids) ids = [];
 
         if (action === 'add') {
             selectedIds = selectedIds.concat(ids);
@@ -1636,9 +1638,16 @@ $.fn.w2field('addType', 'voc', function(options) {
 
     $input.css( 'opacity', 0 );
     $input.focus(function() {
-
         if ($el.data('block-next-call')) return $el.data('block-next-call', 0);
         w2field_voc(params);
+    });
+
+    document.addEventListener('visibilitychange', function() {
+
+        if (document.visibilityState === 'visible') $input.focus(function() {
+            if ($el.data('block-next-call')) return $el.data('block-next-call', 0);
+            w2field_voc(params);
+        }); else $input.off('focus');
 
     });
 
