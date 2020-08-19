@@ -444,7 +444,8 @@ $.fn.w2reform = function (o) {
         var data = this.record
         eachAttr ($box, 'data-off', data, function (me, n, v) {if ( v) me.hide (); else me.show ()})
         eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})
-        refill (data, $('.w2ui-buttons', $box))
+        var target = $('.w2ui-buttons', $box)
+        if (target.length > 0) refill (data, target)
     }
 
     function setRefreshButtons (e) {
