@@ -1138,17 +1138,19 @@ function w2field_voc(data) {
         var values
             , $field;
 
+        let _result_label = options.fieldLabel || (i => i[options.fieldLabelKey])
+
         if (options.multiselect) {
 
              values = w2SelectedGrid.records.map(function(i) {
-                i.text = i[options.fieldLabelKey];
+                i.text = _result_label (i)
                 return i;
             });
 
         } else {
 
             values = [this.get(e.recid)];
-            values[0].text = values[0][options.fieldLabelKey];
+            values[0].text = _result_label (values[0])
 
         }
 
