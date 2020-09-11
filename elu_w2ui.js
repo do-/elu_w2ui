@@ -1265,7 +1265,8 @@ function w2field_voc(data) {
 
     var popup = $view.w2uppop(
         {
-            showMax   : true
+            showMax   : true,
+            onClose   : options.onClose,
         },
         function() {
 
