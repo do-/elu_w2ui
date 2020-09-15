@@ -967,7 +967,28 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         },
         function(data) {
 
-            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body>'
+            html += '<table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
+            if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
+            grid.searchData.forEach ((i) => {
+                var search = grid.searches.filter ((e) => {return e.field == i.field})[0]
+                html += '<tr><td>' + search.caption + '</td>'
+                var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
+                html += '<td>' + w2utils.lang(op) + '</td>'
+                var value
+                if (i.type == 'enum') {
+                    value = i.value.map((e) => {return e.label}).join(',')
+                } else if (i.type == 'date' && i.operator == 'between') {
+                    value = i.value.join(' и ')
+                } else if (i.type == 'list') {
+                    value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+                } else {
+                    value = i.value
+                }
+                html += '<td>' + value + '</td></tr>'
+            })
+            html += '</table><br>'
+            html += '<table border>'
             var multiRows = grid.columnGroups.length !== 0
 
             for (var i = 0; i <= 1; i++) {
@@ -1039,7 +1060,9 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             }
 
-            html += '</table></body></html>'
+            html += '</table>'
+            html += '<br>' + $_USER.label + '<br>' + (new Date()).toLocaleString()
+            html += '</body></html>'
 
             grid.unlock ()
 
