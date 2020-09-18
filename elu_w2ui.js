@@ -620,7 +620,15 @@ $.fn.w2regrid = function (o) {
         })
     }
 
-    return this.w2grid (o)
+    var grid = this.w2grid (o)
+
+    grid.on('searchOpen:after', function() {
+        $('#w2ui-overlay-' + this.name + '-searchOverlay input').each(function() {
+            $(this).attr('autocomplete', 'off')
+        })
+    })
+
+    return grid
 
 }
 
