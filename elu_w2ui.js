@@ -1196,7 +1196,7 @@ function w2field_voc(data) {
                 $.extend($('#' + options.fieldID).data('w2field').options, { selected: values })
             );
 
-            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd();
+            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd(values);
 
         }
 
