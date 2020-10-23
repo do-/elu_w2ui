@@ -415,7 +415,19 @@ $.fn.w2reform = function (o) {
 			let r = f.record        
 			let disabled = r.__read_only = $_SESSION.delete ('__read_only')       
 			
-			$('.w2ui-form input, textarea').prop ({disabled})
+			for (let el of $('.w2ui-form input, textarea')) {
+
+				const KEY = '_was_disabled', $el = $(el)
+
+				if (disabled) {
+					if (el.disabled) $el.data (KEY, true)
+					el.disabled = true
+				}				
+				else {
+					el.disabled = $el.data (KEY)
+				}
+
+			}
 
 			e.done (function () {
 			
