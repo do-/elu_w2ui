@@ -621,6 +621,8 @@ $.fn.w2regrid = function (o) {
     if (o.searches) o.searches.forEach(function(item) {
 
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
+        
+        let {voc} = item; if (voc) item.options = {...(item.options || {}), items: voc.items}
 
     })
     
