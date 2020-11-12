@@ -1,4 +1,7 @@
 w2utils.settings = {
+	elu: {
+		filter_field: 'fake'
+	},
     autocomplete     : "off",
     weekStarts       : "M",
     "dataType"       : "JSON",
@@ -649,17 +652,35 @@ $.fn.w2uppop = function (o, done) {
 
 }
 
-function add_vocabularies (data, o) {
+function add_vocabularies (data, vocs) {
 
-    for (var name in o) {
+	for (let [k, o] of Object.entries (vocs)) {
 
-        var raw = data [name]; if (!raw) continue
+		let items = clone (data [k]); if (!items || !Array.isArray (items)) continue
 
-        var idx = {items: raw.filter (function (r) {var f = r.fake; return !f || parseInt (f) == 0})}; $.each (raw, function () {idx [this.id] = this.text = this.label})
+		if (typeof o != 'object') o = {}
 
-        data [name] = idx
+		if (!o.id)    o.id    = 'id'
+		if (!o.label) o.label = 'label'
 
-    }
+		if (!o.xform_id) o.xform_id = 
+			o.id_to_string ? i => '' + i :
+			i => i
+
+		if (!o.get_id)   o.get_id   = r => r [o.id]
+		if (!o.get_text) o.get_text = r => r [o.label]
+
+		let idx = {}; for (let r of items) idx [r.id = o.xform_id (o.get_id (r))] = (r.text = o.get_text (r))
+
+		if (!o.filter_field) o.filter_field = w2utils.settings.filter_field
+
+		if (!o.filter && o.filter_field) o.filter = r => {let v = r [filter_field]; return v && v != '0'}
+
+		if (o.filter) items = items.filter (o.filter)
+		
+		data [k] = {...idx, items}
+
+	}
 
 }
 
