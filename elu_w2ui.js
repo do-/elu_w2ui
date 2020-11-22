@@ -636,10 +636,14 @@ $.fn.w2regrid = function (o) {
 $.fn.w2uppop = function (o, done) {
 
     var $this = (this)
+    
+    for (let k of ['width', 'height', 'title']) {
+    
+    	let v = $this.attr ('data-popup-' + k)
+    	
+    	if (v) o [k] = v
 
-    o.width  = $this.attr ('data-popup-width')
-    o.height = $this.attr ('data-popup-height')
-    o.title  = $this.attr ('data-popup-title')
+    }
 
     if (!$('button[data-hotkey="Ctrl-Enter"]').length) {
 	    var $button = $('button', $this)
