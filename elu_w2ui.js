@@ -1863,7 +1863,7 @@ function w2_close_popup_reload_grid () {
 
 	w2popup.close ()
 
-	let g = w2_first_grid (); g.reload (g.refresh)
+	let g = w2_first_grid (); g.reload (g.refresh.bind(g))
 
 }
 
