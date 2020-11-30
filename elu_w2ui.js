@@ -827,6 +827,8 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
         }
 
         ajaxData = Object.assign(ajaxData, grid.postData)
+        
+        let {onRequest} = grid; if (onRequest) onRequest.call (grid, {postData: ajaxData})
 
         $.ajax({
             url         : grid.url,
