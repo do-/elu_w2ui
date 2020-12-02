@@ -905,7 +905,8 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
                 var field = {
                     name   : columns[columns_index].field,
-                    render : columns[columns_index].render
+                    render : columns[columns_index].render,
+                    type   : columns[columns_index].type
                 }
 
                 head[0].push(column)
@@ -928,7 +929,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 head[1] = head[1].concat( children.map(function(i) { return { title: i.caption } }) )
 
                 fields = fields.concat(
-                    children.map(function(i) { return { name: i.field, render: i.render } })
+                    children.map(function(i) { return { name: i.field, render: i.render, type : i.type } })
                 )
 
                 columns_index += column_group.span
@@ -942,7 +943,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
         columns = columns.filter(function(i) { return !i.hidden })
 
         head   = [ null, columns.map(function(i) { return { title: i.caption } }) ]
-        fields = columns.map(function(i) { return { name: i.field, render: i.render } })
+        fields = columns.map(function(i) { return { name: i.field, render: i.render, type : i.type } })
 
     }
 
@@ -962,7 +963,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    function value(val, isNumber) {
+    function value(val, isNumber, isHtml) {
 
         if (
             typeof val === 'undefined'
@@ -970,6 +971,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
         ) return ''
 
         if (isNumber) val = String(val).replace ('.', ',')
+	    
+	if (isHtml) return val
 
         return escapeHtml(val)
 
@@ -1024,9 +1027,10 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
                     var field    = data.fields[idx]
                     var type     = typeof field.render === 'function' ? field.type : field.render
                     var isNumber = /^(int|float|number|money)/.test(type)
+		    var isHtml   = /^(html)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '>' + value(val, isNumber) + '</td>'
+                    html += '<td' + classes + '>' + value(val, isNumber, isHtml) + '</td>'
 
                 })
 
@@ -1042,9 +1046,10 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
                     var type     = typeof field.render === 'function' ? field.type : field.render
                     var isNumber = /^(int|float|number|money)/.test(type)
+		    var isHtml   = /^(html)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber) + '</b></td>'
+                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber, isHtml) + '</b></td>'
 
                 })
 
