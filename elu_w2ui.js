@@ -701,7 +701,7 @@ function add_vocabularies (data, vocs) {
 
 		if (!o.filter_field) o.filter_field = w2utils.settings.filter_field
 
-		if (!o.filter && o.filter_field) o.filter = r => {let v = r ['filter_field']; return v && v != '0'}
+		if (!o.filter && o.filter_field) o.filter = r => {let v = r [o.filter_field]; return v && v != '0'}
 
 		if (o.filter) items = items.filter (o.filter)
 
