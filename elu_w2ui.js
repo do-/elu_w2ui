@@ -390,6 +390,7 @@ $.fn.w2reform = function (o) {
 
 		if (field.type == 'date') {
 			$this.attr ('placeholder', '')
+			$this.attr ({autocomplete: 'chrome-off'})
 			if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
 		}
 		
