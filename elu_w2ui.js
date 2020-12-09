@@ -351,7 +351,7 @@ $.fn.w2reform = function (o) {
 		
 		let $this = $(this)
 
-		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (darn (this.type)) {
+		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (this.type) {
 
 			case 'password':
 				$this.attr ('autocomplete', 'new-password')
@@ -388,10 +388,12 @@ $.fn.w2reform = function (o) {
 				$(this).removeAttr ('type')
 		}
 
-		if (field.type == 'date') {
-			$this.attr ('placeholder', '')
-			$this.attr ({autocomplete: 'chrome-off'})
-			if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
+		switch (field.type) {
+			case 'date':
+				$this.attr ('placeholder', '')
+				if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
+			case 'list':
+				$this.attr ({autocomplete: 'chrome-off'})
 		}
 		
 		if ($this.attr ('required')) field.required = true
@@ -547,6 +549,10 @@ $.fn.w2reform = function (o) {
 		$this.attr ('style', style)
 
 	})
+	
+	let chrome_off = () => $('input[autocomplete=off]', f.box).attr ({autocomplete: 'chrome-off'})
+	
+	chrome_off ()
 
     f.on('refresh:after', function() {
 
@@ -555,6 +561,8 @@ $.fn.w2reform = function (o) {
             if (f.type == 'checkbox') $('[name="' + f.name + '"]').prop('disabled', f.disabled)
 
         })
+
+		chrome_off ()
 
     })
 
