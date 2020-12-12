@@ -60,6 +60,7 @@ w2utils.settings = {
         "Size": "Размер",
         "Type": "Тип",
         "Modified": "Дата изменения",
+        "No matches": "Ничего не найдено",
         "No items found": "Ничего не найдено",
         "No": "Нет",
         "none": "пусто",
