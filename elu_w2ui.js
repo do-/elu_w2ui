@@ -1080,6 +1080,16 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb) {
 
 }
 
+w2obj.form.prototype.set_items = function (name, items) {
+
+	let fld = this.get (name).$el.w2field ()
+
+	$(fld.el).data ('selected', [])
+	
+	for (let item of items) fld.set (item, true)
+
+}
+
 w2obj.form.prototype.values = function () {
 
     let o = {}
