@@ -1876,7 +1876,7 @@ function w2_waiting_panel () {
 
 async function w2_msg_box (o) {
 
-	o.buttons = o.buttons.map (({id, label}) => `<button id=${id} class="w2ui-popup-btn w2ui-btn">${label}</button>`)
+	o.buttons = o.buttons.map (({id, label}) => `<button id=${id} class="w2ui-popup-btn w2ui-btn">${label}</button>`).join ('')
 
 	w2popup.message (o)
 	
