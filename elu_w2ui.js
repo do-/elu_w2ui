@@ -1873,6 +1873,22 @@ function w2_waiting_panel () {
 	return l.el (pn)
 }
 
+
+async function w2_msg_box (o) {
+
+	o.buttons = o.buttons.map ({id, label} => `<button id=${id} class="w2ui-popup-btn w2ui-btn">${label}</button>`)
+
+	w2popup.message (o)
+	
+	return new Promise (ok => {
+		$('.w2ui-message button').click (e => {
+			w2popup.message ()
+			ok (e.target.id)
+		})
+	})
+
+}
+
 async function w2_upload_files_from_popup (o) {
 
 	let f = w2_popup_form ()
