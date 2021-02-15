@@ -639,7 +639,15 @@ $.fn.w2regrid = function (o) {
 
     })
     
-    return this.w2grid (o)
+    let grid = this.w2grid (o)
+    
+    if (o.searches) grid.on ('searchOpen', e => e.done (
+
+    	() => $('input[rel=search]').attr ({autocomplete: 'chrome-off'})
+
+    ))
+    
+    return grid
 
 }
 
