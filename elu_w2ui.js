@@ -1,4 +1,7 @@
 w2utils.settings = {
+	elu: {
+		filter_field: 'fake'
+	},
     autocomplete     : "off",
     weekStarts       : "M",
     "dataType"       : "JSON",
@@ -50,16 +53,19 @@ w2utils.settings = {
         "Loading...": "Загрузка...",
         "Multi Fields": "Несколько полей",
         "Multiple Fields": "Несколько полей",
+        "misses": "не содержит",
         "more than": "более или ровно",
         "less than": "менее или ровно",
         "Name": "Имя",
         "Size": "Размер",
         "Type": "Тип",
         "Modified": "Дата изменения",
+        "No matches": "Ничего не найдено",
         "No items found": "Ничего не найдено",
         "No": "Нет",
         "none": "пусто",
         "null": "пусто",
+        "not null": "не пусто",        
         "Not a float": "Не натуральное число",
         "Not a hex number": "Не шестнадцатеричное число",
         "Not a valid date": "Неверный формат",
@@ -346,7 +352,7 @@ $.fn.w2reform = function (o) {
 		
 		let $this = $(this)
 
-		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (darn (this.type)) {
+		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (this.type) {
 
 			case 'password':
 				$this.attr ('autocomplete', 'new-password')
@@ -383,9 +389,12 @@ $.fn.w2reform = function (o) {
 				$(this).removeAttr ('type')
 		}
 
-		if (field.type == 'date') {
-			$this.attr ('placeholder', '')
-			if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
+		switch (field.type) {
+			case 'date':
+				$this.attr ('placeholder', '')
+				if (!$this.hasClass ('w2ui-input-date')) $this.addClass ('w2ui-input-date')
+			case 'list':
+				$this.attr ({autocomplete: 'chrome-off'})
 		}
 		
 		if ($this.attr ('required')) field.required = true
@@ -413,9 +422,22 @@ $.fn.w2reform = function (o) {
 			let r = f.record        
 			let disabled = r.__read_only = $_SESSION.delete ('__read_only')       
 			
+			for (let el of $('.w2ui-form input, textarea')) {
+
+				const KEY = '_was_disabled', $el = $(el)
+
+				if (disabled) {
+					if (el.disabled) $el.data (KEY, true)
+					el.disabled = true
+				}				
+				else {
+					el.disabled = $el.data (KEY)
+				}
+
+			}
+
 			e.done (function () {
 			
-				$('.w2ui-form input, textarea').prop ({disabled})
 				
 				let v = f.values ()
 				
@@ -528,6 +550,10 @@ $.fn.w2reform = function (o) {
 		$this.attr ('style', style)
 
 	})
+	
+	let chrome_off = () => $('input[autocomplete=off]', f.box).attr ({autocomplete: 'chrome-off'})
+	
+	chrome_off ()
 
     f.on('refresh:after', function() {
 
@@ -536,6 +562,8 @@ $.fn.w2reform = function (o) {
             if (f.type == 'checkbox') $('[name="' + f.name + '"]').prop('disabled', f.disabled)
 
         })
+
+		chrome_off ()
 
     })
 
@@ -606,20 +634,34 @@ $.fn.w2regrid = function (o) {
     if (o.searches) o.searches.forEach(function(item) {
 
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
+        
+        let {voc} = item; if (voc) item.options = {...(item.options || {}), items: voc.items}
 
     })
     
-    return this.w2grid (o)
+    let grid = this.w2grid (o)
+    
+    if (o.searches) grid.on ('searchOpen', e => e.done (
+
+    	() => $('input[rel=search]').attr ({autocomplete: 'chrome-off'})
+
+    ))
+    
+    return grid
 
 }
 
 $.fn.w2uppop = function (o, done) {
 
     var $this = (this)
+    
+    for (let k of ['width', 'height', 'title']) {
+    
+    	let v = $this.attr ('data-popup-' + k)
+    	
+    	if (v) o [k] = v
 
-    o.width  = $this.attr ('data-popup-width')
-    o.height = $this.attr ('data-popup-height')
-    o.title  = $this.attr ('data-popup-title')
+    }
 
     if (!$('button[data-hotkey="Ctrl-Enter"]').length) {
 	    var $button = $('button', $this)
@@ -632,17 +674,35 @@ $.fn.w2uppop = function (o, done) {
 
 }
 
-function add_vocabularies (data, o) {
+function add_vocabularies (data, vocs) {
 
-    for (var name in o) {
+	for (let [k, o] of Object.entries (vocs)) {
 
-        var raw = data [name]; if (!raw) continue
+		let items = clone (data [k]); if (!items || !Array.isArray (items)) continue
 
-        var idx = {items: raw.filter (function (r) {var f = r.fake; return !f || parseInt (f) == 0})}; $.each (raw, function () {idx [this.id] = this.text = this.label})
+		if (typeof o != 'object') o = {}
 
-        data [name] = idx
+		if (!o.id)    o.id    = 'id'
+		if (!o.label) o.label = 'label'
 
-    }
+		if (!o.xform_id) o.xform_id = 
+			o.id_to_string ? i => '' + i :
+			i => i
+
+		if (!o.get_id)   o.get_id   = r => r [o.id]
+		if (!o.get_text) o.get_text = r => r [o.label]
+
+		let idx = {}; for (let r of items) idx [r.id = o.xform_id (o.get_id (r))] = (r.text = o.get_text (r))
+
+		if (!o.filter_field) o.filter_field = w2utils.settings.filter_field
+
+		if (!o.filter && o.filter_field) o.filter = r => {let v = r [o.filter_field]; return v && v != '0'}
+
+		if (o.filter) items = items.filter (o.filter)
+		
+		data [k] = {...idx, items}
+
+	}
 
 }
 
@@ -785,6 +845,8 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
         }
 
         ajaxData = Object.assign(ajaxData, grid.postData)
+        
+        let {onRequest} = grid; if (onRequest) onRequest.call (grid, {postData: ajaxData})
 
         $.ajax({
             url         : grid.url,
@@ -861,7 +923,8 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
 
                 var field = {
                     name   : columns[columns_index].field,
-                    render : columns[columns_index].render
+                    render : columns[columns_index].render,
+                    type   : columns[columns_index].type
                 }
 
                 head[0].push(column)
@@ -884,7 +947,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
                 head[1] = head[1].concat( children.map(function(i) { return { title: i.caption } }) )
 
                 fields = fields.concat(
-                    children.map(function(i) { return { name: i.field, render: i.render } })
+                    children.map(function(i) { return { name: i.field, render: i.render, type : i.type } })
                 )
 
                 columns_index += column_group.span
@@ -898,7 +961,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
         columns = columns.filter(function(i) { return !i.hidden })
 
         head   = [ null, columns.map(function(i) { return { title: i.caption } }) ]
-        fields = columns.map(function(i) { return { name: i.field, render: i.render } })
+        fields = columns.map(function(i) { return { name: i.field, render: i.render, type : i.type } })
 
     }
 
@@ -922,7 +985,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    function value(val, isNumber) {
+    function value(val, isNumber, isHtml) {
 
         if (
             typeof val === 'undefined'
@@ -930,6 +993,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         ) return ''
 
         if (isNumber) val = String(val).replace ('.', ',')
+	    
+	if (isHtml) return val
 
         return escapeHtml(val)
 
@@ -994,9 +1059,10 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
                     var field    = data.fields[idx]
                     var type     = typeof field.render === 'function' ? field.type : field.render
                     var isNumber = /^(int|float|number|money)/.test(type)
+		    var isHtml   = /^(html)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '>' + value(val, isNumber) + '</td>'
+                    html += '<td' + classes + '>' + value(val, isNumber, isHtml) + '</td>'
 
                 })
 
@@ -1014,9 +1080,10 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
                     var type     = typeof field.render === 'function' ? field.type : field.render
                     var isNumber = /^(int|float|number|money)/.test(type)
+		    var isHtml   = /^(html)/.test(type)
                     var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber) + '</b></td>'
+                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber, isHtml) + '</b></td>'
 
                 })
 
@@ -1034,6 +1101,16 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
         }
     )
+
+}
+
+w2obj.form.prototype.set_items = function (name, items) {
+
+	let fld = this.get (name).$el.w2field ()
+
+	$(fld.el).data ('selected', [])
+	
+	for (let item of items) fld.set (item, true)
 
 }
 
@@ -1827,6 +1904,22 @@ function w2_waiting_panel () {
 	let l = w2ui [ln.substr (7)]
 	l.unlock (pn)
 	return l.el (pn)
+}
+
+
+async function w2_msg_box (o) {
+
+	o.buttons = o.buttons.map (({id, label}) => `<button id=${id} class="w2ui-popup-btn w2ui-btn">${label}</button>`).join ('')
+
+	w2popup.message (o)
+	
+	return new Promise (ok => {
+		$('.w2ui-message button').click (e => {
+			w2popup.message ()
+			ok (e.target.id)
+		})
+	})
+
 }
 
 async function w2_upload_files_from_popup (o) {
