@@ -65,7 +65,7 @@ w2utils.settings = {
         "No": "Нет",
         "none": "пусто",
         "null": "пусто",
-        "not null": "не пусто",        
+        "not null": "не пусто",
         "Not a float": "Не натуральное число",
         "Not a hex number": "Не шестнадцатеричное число",
         "Not a valid date": "Неверный формат",
@@ -256,7 +256,7 @@ w2utils.unlockAll = function () {
 }
 
 $.fn.w2relayout = function (o) {
-    
+
     for (let panel of o.panels) {
     	let tabs = panel.tabs; if (!tabs) continue
     	if (tabs.tabs) tabs = tabs.tabs
@@ -264,13 +264,13 @@ $.fn.w2relayout = function (o) {
     }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
-    
+
     if (!o.onRender) o.onRender = function (e) {
 
     	var layout = this
 
 	    for (let panel of layout.panels) {
-	    
+
 			let tabs = panel.tabs; if (!tabs) continue
 			let key  = tabs.name
 
@@ -281,7 +281,7 @@ $.fn.w2relayout = function (o) {
 				layout.content (panel.type, '')
 				layout.lock    (panel.type, 'Загрузка...', true)
 
-				$_LOCAL.set (key, name) 								
+				$_LOCAL.set (key, name)
 
 				e.tab.sync ? use.block (name) : show_block (name)
 
@@ -296,9 +296,9 @@ $.fn.w2relayout = function (o) {
 				tabs.click (id)
 
 			})
-		
+
 		}
-    	
+
     }
 
     return this.w2layout (o)
@@ -310,23 +310,23 @@ $.fn.w2reform = function (o) {
 	let field_options = o.field_options || {}
 
 	if (!o.record) o.record = {}
-		
+
 	let n2f = {}
 
 	let fields = o.fields = (o.fields || $('input, textarea', this).toArray ().map (i => i.name)).map ((field) => {
 
 		if (typeof field === 'string' || field instanceof String) field = {name: field}
-		
+
 		let op = field_options [field.name]; if (op) for (let k in op) field [k] = op [k]
 
 		if (!field.type)    field.type       = 'text'
 		if (!field.options) field.options    = {}
-		
+
 		if (field.voc)   field.items         = field.voc.items
 		if (field.items) field.options.items = field.items
-		
+
 		if (field.type == 'text' && field.options.items) field.type = 'list'
-		
+
 		n2f [field.name] = field
 
 		return field
@@ -334,7 +334,7 @@ $.fn.w2reform = function (o) {
 	})
 
 	$('input, textarea', this).each (function () {
-	
+
 		let field = n2f [this.name]; if (!field) {
 			if (this.type == 'hidden') fields.push ({name: this.name, type: 'hidden'})
 			return
@@ -347,9 +347,9 @@ $.fn.w2reform = function (o) {
 			if (!('options' in field)) field.options     = {}
 			if (!(k in field.options)) field.options [k] = v
 		}
-		
+
 		function is_date (v) {return /^\d{4}\-\d{2}\-\d{2}$/.test (v)}
-		
+
 		let $this = $(this)
 
 		if (w2utils.settings.autocomplete == "off" && !this.hasAttribute ("autocomplete")) switch (this.type) {
@@ -363,7 +363,7 @@ $.fn.w2reform = function (o) {
 				break
 
 		}
-		
+
 		if (field.type == 'text') switch (this.type) {
 
 			case "date":
@@ -382,7 +382,7 @@ $.fn.w2reform = function (o) {
 			break
 
 		}
-		
+
 		switch (this.type) {
 			case 'number':
 			case 'date':
@@ -396,16 +396,16 @@ $.fn.w2reform = function (o) {
 			case 'list':
 				$this.attr ({autocomplete: 'chrome-off'})
 		}
-		
+
 		if ($this.attr ('required')) field.required = true
-		
-		let min = $this.attr ('min'); if (min) {			
-			if (is_date (min)) setOption ('start', dt_dmy (min));				
+
+		let min = $this.attr ('min'); if (min) {
+			if (is_date (min)) setOption ('start', dt_dmy (min));
 			              else setOption ('min', min)
 		}
 
-		let max = $this.attr ('max'); if (max) {			
-			if (is_date (max)) setOption ('end', dt_dmy (max));				
+		let max = $this.attr ('max'); if (max) {
+			if (is_date (max)) setOption ('end', dt_dmy (max));
 			              else setOption ('max', max)
 		}
 
@@ -413,15 +413,15 @@ $.fn.w2reform = function (o) {
 
 	if (!o.onRefresh && $_SESSION.get ('__read_only') != null) {
 
-		o.onRefresh = function (e) {        
-		
+		o.onRefresh = function (e) {
+
 			$('#w2ui-overlay').remove ()
 			$('<span id=w2ui-overlay>').appendTo ($('body')).hide ()
 
 			let f = w2ui [e.target]
-			let r = f.record        
-			let disabled = r.__read_only = $_SESSION.delete ('__read_only')       
-			
+			let r = f.record
+			let disabled = r.__read_only = $_SESSION.delete ('__read_only')
+
 			for (let el of $('.w2ui-form input, textarea')) {
 
 				const KEY = '_was_disabled', $el = $(el)
@@ -429,7 +429,7 @@ $.fn.w2reform = function (o) {
 				if (disabled) {
 					if (el.disabled) $el.data (KEY, true)
 					el.disabled = true
-				}				
+				}
 				else {
 					el.disabled = $el.data (KEY)
 				}
@@ -437,20 +437,20 @@ $.fn.w2reform = function (o) {
 			}
 
 			e.done (function () {
-			
-				
+
+
 				let v = f.values ()
-				
-				let backup_slideAsNeeded = $.fn.slideAsNeeded				
+
+				let backup_slideAsNeeded = $.fn.slideAsNeeded
 				$.fn.slideAsNeeded = function (is) {this.toggle (!!is)}
 
 				for (let field of f.fields) {
 					let h = field.onChange
 					if (h) h (v [field.name])
 				}
-				
+
 				$.fn.slideAsNeeded = backup_slideAsNeeded
-				
+
 				$('#w2ui-overlay').remove ()
 
 				if (!disabled && f.focus > -1) f.fields [f.focus].$el.focus ()
@@ -466,13 +466,14 @@ $.fn.w2reform = function (o) {
         var data = this.record
         eachAttr ($box, 'data-off', data, function (me, n, v) {if ( v) me.hide (); else me.show ()})
         eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})
-        refill (data, $('.w2ui-buttons', $box))
+        var target = $('.w2ui-buttons', $box)
+        if (target.length > 0) refill (data, target)
     }
 
     function setRefreshButtons (e) {
 
         var r = w2ui [e.target].record
-            
+
         if (r) $.each (o.fields, function () {
             if (this.type == 'date') {
                 var v = r [this.name]
@@ -489,7 +490,7 @@ $.fn.w2reform = function (o) {
         })
 
         e.done (refreshButtons)
-        
+
     }
 
     function andSetRefreshButtons (f) {
@@ -498,7 +499,7 @@ $.fn.w2reform = function (o) {
             setRefreshButtons (e)
         }
     }
-    
+
     if (!o.actions) {
 
         o.onRefresh = andSetRefreshButtons (o.onRefresh)
@@ -509,9 +510,9 @@ $.fn.w2reform = function (o) {
         }
 
     }
-        
+
     let observedFields = fields.filter (f => f.onChange); if (observedFields.length) {
-    
+
 		let n2h = {}; for (f of observedFields) n2h [f.name] = f.onChange
 
 		let oldOnChange = o.onChange
@@ -529,13 +530,13 @@ $.fn.w2reform = function (o) {
 			h (v instanceof Object && 'id' in v ? v.id : v)
 
 		}
-		
+
     }
 
     if (w2ui [o.name]) w2ui [o.name].destroy ()
 
     var f = this.w2form (o)
-    
+
 	$('.w2ui-field-helper input').each (function () {
 
 		let $this = $(this)
@@ -631,22 +632,32 @@ $.fn.w2regrid = function (o) {
 
     })
 
+    var grid = this.w2grid (o)
+
     if (o.searches) o.searches.forEach(function(item) {
 
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
-        
+
         let {voc} = item; if (voc) item.options = {...(item.options || {}), items: voc.items}
 
     })
-    
-    let grid = this.w2grid (o)
-    
-    if (o.searches) grid.on ('searchOpen', e => e.done (
 
-    	() => $('input[rel=search]').attr ({autocomplete: 'chrome-off'})
+    if (o.autoReload) {
+        localStorage.setItem('reload_' + o.name, 0)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'reload_' + o.name && e.newValue == 1) {
+                localStorage.setItem('reload_' + o.name, 0)
+                setTimeout(function () { w2ui[o.name].reload() }, 500);
+            }
+        })
+    }
 
-    ))
-    
+    grid.on('searchOpen:after', function() {
+        $('#w2ui-overlay-' + this.name + '-searchOverlay input').each(function() {
+            $(this).attr('autocomplete', 'off')
+        })
+    })
+
     return grid
 
 }
@@ -654,11 +665,11 @@ $.fn.w2regrid = function (o) {
 $.fn.w2uppop = function (o, done) {
 
     var $this = (this)
-    
+
     for (let k of ['width', 'height', 'title']) {
-    
+
     	let v = $this.attr ('data-popup-' + k)
-    	
+
     	if (v) o [k] = v
 
     }
@@ -666,12 +677,16 @@ $.fn.w2uppop = function (o, done) {
     if (!$('button[data-hotkey="Ctrl-Enter"]').length) {
 	    var $button = $('button', $this)
 	    if ($button.length == 1) $button.attr ('data-hotkey', 'Ctrl-Enter')
-    }    
-    
+    }
+
 	o.onOpen = function (e) {e.done (done)}
 
     return this.w2popup ('open', o)
 
+}
+
+function reloadGrid (name) {
+    localStorage.setItem('reload_' + name, 1)
 }
 
 function add_vocabularies (data, vocs) {
@@ -685,7 +700,7 @@ function add_vocabularies (data, vocs) {
 		if (!o.id)    o.id    = 'id'
 		if (!o.label) o.label = 'label'
 
-		if (!o.xform_id) o.xform_id = 
+		if (!o.xform_id) o.xform_id =
 			o.id_to_string ? i => '' + i :
 			i => i
 
@@ -699,7 +714,7 @@ function add_vocabularies (data, vocs) {
 		if (!o.filter && o.filter_field) o.filter = r => {let v = r [o.filter_field]; return v && v != '0'}
 
 		if (o.filter) items = items.filter (o.filter)
-		
+
 		data [k] = {...idx, items}
 
 	}
@@ -709,25 +724,25 @@ function add_vocabularies (data, vocs) {
 function normalizeScalarValue (s, type) {
 
     if (s == '') return null
-    
+
     switch (type) {
-    
-        case 'int':      
-            return s.replace (/[\D]/g, '')            
-            
-        case 'date':     
-            return s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})            
-            
-        case 'datetime': 
+
+        case 'int':
+            return s.replace (/[\D]/g, '')
+
+        case 'date':
+            return s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d)$/, function (_, d, m, y) {return y + '-' + m + '-' + d})
+
+        case 'datetime':
             return s.replace (/^(\d\d)\.(\d\d)\.(\d\d\d\d) (\d\d?)\:(\d\d)$/, function (_, d, m, y, hrs, mnts) {return y + '-' + m + '-' + d + ' ' + (hrs.length == 1 ? '0' : '') + hrs + ':' + mnts + ':00'})
-            
-        case 'float':                
+
+        case 'float':
         case 'money':
-            return s.replace (/ /g, '').replace (',', '.')            
-            
-        default: 
+            return s.replace (/ /g, '').replace (',', '.')
+
+        default:
             return s
-            
+
     }
 
 }
@@ -735,12 +750,12 @@ function normalizeScalarValue (s, type) {
 function normalizeValue (raw, type) {
 
     if (raw == null) return null
-    
-    switch (type) {    
-        case 'file':     return raw           
-        case 'checkbox': return (raw ? 1 : 0)            
-        case 'list':     return raw.id            
-        case 'enum':     return raw.map (function (i) {return i.id})            
+
+    switch (type) {
+        case 'file':     return raw
+        case 'checkbox': return (raw ? 1 : 0)
+        case 'list':     return raw.id
+        case 'enum':     return raw.map (function (i) {return i.id})
         default:         return normalizeScalarValue (String (raw).trim (), type.split (':') [0])
     }
 
@@ -845,7 +860,7 @@ w2obj.grid.prototype.toArray = function (iterator_cb, done_cb) {
         }
 
         ajaxData = Object.assign(ajaxData, grid.postData)
-        
+
         let {onRequest} = grid; if (onRequest) onRequest.call (grid, {postData: ajaxData})
 
         $.ajax({
@@ -993,7 +1008,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         ) return ''
 
         if (isNumber) val = String(val).replace ('.', ',')
-	    
+
 	if (isHtml) return val
 
         return escapeHtml(val)
@@ -1017,7 +1032,28 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         },
         function(data) {
 
-            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body><table border>'
+            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body>'
+            html += '<table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
+            if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
+            grid.searchData.forEach ((i) => {
+                var search = grid.searches.filter ((e) => {return e.field == i.field})[0]
+                html += '<tr><td>' + search.caption + '</td>'
+                var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
+                html += '<td>' + w2utils.lang(op) + '</td>'
+                var value
+                if (i.type == 'enum') {
+                    value = i.value.map((e) => {return e.label}).join(',')
+                } else if (i.type == 'date' && i.operator == 'between') {
+                    value = i.value.join(' и ')
+                } else if (i.type == 'list') {
+                    value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+                } else {
+                    value = i.value
+                }
+                html += '<td>' + value + '</td></tr>'
+            })
+            html += '</table><br>'
+            html += '<table border>'
             var multiRows = grid.columnGroups.length !== 0
 
             for (var i = 0; i <= 1; i++) {
@@ -1091,7 +1127,9 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             }
 
-            html += '</table></body></html>'
+            html += '</table>'
+            html += '<br>' + $_USER.label + '<br>' + (new Date()).toLocaleString()
+            html += '</body></html>'
 
             grid.unlock ()
 
@@ -1144,7 +1182,7 @@ w2obj.form.prototype.values = function () {
         _do_apologize (o, fail)
 
     }
-    
+
 })();
 
 function w2field_voc(data) {
@@ -1200,17 +1238,19 @@ function w2field_voc(data) {
         var values
             , $field;
 
+        let _result_label = options.fieldLabel || (i => i[options.fieldLabelKey])
+
         if (options.multiselect) {
 
              values = w2SelectedGrid.records.map(function(i) {
-                i.text = i[options.fieldLabelKey];
+                i.text = _result_label (i)
                 return i;
             });
 
         } else {
 
             values = [this.get(e.recid)];
-            values[0].text = values[0][options.fieldLabelKey];
+            values[0].text = _result_label (values[0])
 
         }
 
@@ -1225,7 +1265,7 @@ function w2field_voc(data) {
                 $.extend($('#' + options.fieldID).data('w2field').options, { selected: values })
             );
 
-            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd();
+            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd(values);
 
         }
 
@@ -1325,7 +1365,8 @@ function w2field_voc(data) {
 
     var popup = $view.w2uppop(
         {
-            showMax   : true
+            showMax   : true,
+            onClose   : options.onClose,
         },
         function() {
 
@@ -1889,10 +1930,10 @@ function w2_first_grid () {
 
 function w2_close_popup_reload_grid () {
 
-	w2popup.close () 
-	
-	let g = w2_first_grid (); g.reload (g.refresh)
-	
+	w2popup.close ()
+
+	let g = w2_first_grid (); g.reload (g.refresh.bind(g))
+
 }
 
 function w2_confirm_open_tab (msg, url) {
@@ -1926,23 +1967,23 @@ async function w2_upload_files_from_popup (o) {
 
 	let f = w2_popup_form ()
 	let r = f.record
-	
+
     let files = (r [f.fields.filter (i => i.type == 'file') [0].name] || []).map (f => f.file)
-    
+
     let n = files.length; if (!n) return
 
     var sum_size = 0
-        
-    for (let file of files) {    
-        if (!file.type) file.type = "application/octet-stream"        
+
+    for (let file of files) {
+        if (!file.type) file.type = "application/octet-stream"
         sum_size += file.size
-    }    
-    
+    }
+
     let portion = 128 * 1024;
     let sum = 0;
-   
+
     $('#w2ui-popup button').hide ()
-    let $progress = $('#w2ui-popup progress')        
+    let $progress = $('#w2ui-popup progress')
     $progress.prop ({max: sum_size, value: 0}).show ()
     w2utils.lock ($('#w2ui-popup .w2ui-page'))
 
@@ -1951,7 +1992,7 @@ async function w2_upload_files_from_popup (o) {
     o.onloadend  =   (id) => {n --; ids.push (id)}
     o.onprogress = (x, y) => {sum += portion; $progress.val (sum)}
 
-    return new Promise (function (resolve, reject) {    
+    return new Promise (function (resolve, reject) {
 
 		let check = setInterval (function () {
 			if (n) return
@@ -1959,18 +2000,18 @@ async function w2_upload_files_from_popup (o) {
 			resolve (ids)
 		}, 100)
 
-		for (let file of files) Base64file.upload (file, o)    
+		for (let file of files) Base64file.upload (file, o)
 
     })
 
 }
 
 w2obj.form.prototype.reload_block =  function () {
-	
+
 	this.lock ()
-	
+
 	let k = 'data-block-name'
-	
+
 	let name = $(`*[${k}]`, this.box).attr (k)
 
 	setTimeout (() => show_block (name), 10)
