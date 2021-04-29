@@ -693,6 +693,8 @@ function add_vocabularies (data, vocs) {
 
 	for (let [k, o] of Object.entries (vocs)) {
 
+        if (!data [k]) continue
+
 		let items = clone (data [k]); if (!items || !Array.isArray (items)) continue
 
 		if (typeof o != 'object') o = {}
