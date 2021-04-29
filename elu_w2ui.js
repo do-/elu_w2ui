@@ -466,7 +466,8 @@ $.fn.w2reform = function (o) {
         var data = this.record
         eachAttr ($box, 'data-off', data, function (me, n, v) {if ( v) me.hide (); else me.show ()})
         eachAttr ($box, 'data-on',  data, function (me, n, v) {if (!v) me.hide (); else me.show ()})
-        refill (data, $('.w2ui-buttons', $box))
+        var target = $('.w2ui-buttons', $box)
+        if (target.length > 0) refill (data, target)
     }
 
     function setRefreshButtons (e) {
@@ -631,6 +632,8 @@ $.fn.w2regrid = function (o) {
 
     })
 
+    var grid = this.w2grid (o)
+
     if (o.searches) o.searches.forEach(function(item) {
 
         if (item.type === 'text' && !item.operator) item.operator = 'contains'
@@ -639,13 +642,21 @@ $.fn.w2regrid = function (o) {
 
     })
 
-    let grid = this.w2grid (o)
+    if (o.autoReload) {
+        localStorage.setItem('reload_' + o.name, 0)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'reload_' + o.name && e.newValue == 1) {
+                localStorage.setItem('reload_' + o.name, 0)
+                setTimeout(function () { w2ui[o.name].reload() }, 500);
+            }
+        })
+    }
 
-    if (o.searches) grid.on ('searchOpen', e => e.done (
-
-    	() => $('input[rel=search]').attr ({autocomplete: 'chrome-off'})
-
-    ))
+    grid.on('searchOpen:after', function() {
+        $('#w2ui-overlay-' + this.name + '-searchOverlay input').each(function() {
+            $(this).attr('autocomplete', 'off')
+        })
+    })
 
     return grid
 
@@ -672,6 +683,10 @@ $.fn.w2uppop = function (o, done) {
 
     return this.w2popup ('open', o)
 
+}
+
+function reloadGrid (name) {
+    localStorage.setItem('reload_' + name, 1)
 }
 
 function add_vocabularies (data, vocs) {
@@ -1037,7 +1052,29 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             var html = '<html><head><meta charset=utf-8><style>'
             html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.d{mso-number-format:"dd:MM:yyyy"} td.dhm{mso-number-format:"dd:MM:yyyy HH:mm"} td.dhms{mso-number-format:"dd:MM:yyyy HH:mm::ss"}'
-            html += '</style></head><body><table border>'
+            html += '</style></head><body><table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
+
+            if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
+            grid.searchData.forEach ((i) => {
+                var search = grid.searches.filter ((e) => {return e.field == i.field})[0]
+                html += '<tr><td>' + search.caption + '</td>'
+                var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
+                html += '<td>' + w2utils.lang(op) + '</td>'
+                var value
+                if (i.type == 'enum') {
+                    value = i.value.map((e) => {return e.label}).join(',')
+                } else if (i.type == 'date' && i.operator == 'between') {
+                    value = i.value.join(' и ')
+                } else if (i.type == 'list') {
+                    value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+                } else {
+                    value = i.value
+                }
+                html += '<td>' + value + '</td></tr>'
+            })
+            html += '</table><br>'
+            html += '<table border>'
+
             var multiRows = grid.columnGroups.length !== 0
 
             for (var i = 0; i <= 1; i++) {
@@ -1109,7 +1146,9 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             }
 
-            html += '</table></body></html>'
+            html += '</table>'
+            html += '<br>' + $_USER.label + '<br>' + (new Date()).toLocaleString()
+            html += '</body></html>'
 
             grid.unlock ()
 
@@ -1218,17 +1257,19 @@ function w2field_voc(data) {
         var values
             , $field;
 
+        let _result_label = options.fieldLabel || (i => i[options.fieldLabelKey])
+
         if (options.multiselect) {
 
              values = w2SelectedGrid.records.map(function(i) {
-                i.text = i[options.fieldLabelKey];
+                i.text = _result_label (i)
                 return i;
             });
 
         } else {
 
             values = [this.get(e.recid)];
-            values[0].text = values[0][options.fieldLabelKey];
+            values[0].text = _result_label (values[0])
 
         }
 
@@ -1243,7 +1284,7 @@ function w2field_voc(data) {
                 $.extend($('#' + options.fieldID).data('w2field').options, { selected: values })
             );
 
-            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd();
+            if ($field.data('w2field').onAdd) $field.data('w2field').onAdd(values);
 
         }
 
@@ -1343,7 +1384,8 @@ function w2field_voc(data) {
 
     var popup = $view.w2uppop(
         {
-            showMax   : true
+            showMax   : true,
+            onClose   : options.onClose,
         },
         function() {
 
@@ -1909,7 +1951,7 @@ function w2_close_popup_reload_grid () {
 
 	w2popup.close ()
 
-	let g = w2_first_grid (); g.reload (g.refresh)
+	let g = w2_first_grid (); g.reload (g.refresh.bind(g))
 
 }
 
