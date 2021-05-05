@@ -1033,8 +1033,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
                 } else {
 
                     let type
-                    if ( isFinite( String(val).replace('.', ',') ) ) {
-                        val = String(val).replace('.', ',')
+                    if ( isFinite( String(val).replace(',', '.') ) ) {
+                        val = String(val).replace(',', '.')
                         type = 'n'
                     } else if ( /^\d\d.\d\d.\d\d\d\d$/.test(val) ) {
                         type = 'd'
@@ -1053,12 +1053,12 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
             }
 
             var html = '<html><head><meta charset=utf-8><style>'
-            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.d{mso-number-format:"dd:MM:yyyy"} td.dhm{mso-number-format:"dd:MM:yyyy HH:mm"} td.dhms{mso-number-format:"dd:MM:yyyy HH:mm::ss"}'
+            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
             html += '</style></head><body><table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
 
             if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
             grid.searchData.forEach ((i) => {
-                var search = grid.searches.filter ((e) => {return e.field == i.field})[0]
+                var search = grid.searches.filter ((e) => {return e.field == i.field})[0] || {caption : 'Общий поиск'}
                 html += '<tr><td>' + search.caption + '</td>'
                 var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
                 html += '<td>' + w2utils.lang(op) + '</td>'
