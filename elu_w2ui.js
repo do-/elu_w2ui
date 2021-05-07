@@ -1033,9 +1033,24 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
                 } else {
 
                     let type
-                    if ( isFinite( String(val).replace(',', '.') ) ) {
-                        val = String(val).replace(',', '.')
-                        type = 'n'
+                    val = String(val)
+
+                    if ( isFinite( val ) ) {
+
+                        let point = val.indexOf('.')
+
+                        if (point == -1) {
+                            type = 'n0'
+                        } else {
+                            let n_type = val.length - point - 1;
+
+                            if (n_type == 2 || n_type == 1) {
+                                type = 'n' + n_type
+                            } else {
+                                type = 'n'
+                            }
+                        }
+
                     } else if ( /^\d\d.\d\d.\d\d\d\d$/.test(val) ) {
                         type = 'd'
                     } else if ( /^\d\d.\d\d.\d\d\d\d \d\d:\d\d$/.test(val) ) {
@@ -1053,7 +1068,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
             }
 
             var html = '<html><head><meta charset=utf-8><style>'
-            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
+            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.n0{mso-number-format:"0"} td.n1{mso-number-format:"0\.0"} td.n2{mso-number-format:"0\.00"} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
             html += '</style></head><body><table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
 
             if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
