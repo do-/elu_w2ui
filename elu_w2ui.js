@@ -1020,13 +1020,13 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         },
         function(data) {
 
-            function value(val, isHtml) {
+            function value(val, field_type) {
 
                 if (typeof val === 'undefined' || val === null) {
 
                     return '<td></td>';
 
-                } else if (isHtml) {
+                } else if ( /^(html)/.test(field_type) ) {
 
                     return '<td>' + val + '</td>'
 
@@ -1034,16 +1034,17 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
                     let type
                     val = String(val)
+                    let point = val.indexOf('.')
 
-                    if ( isFinite( val ) ) {
-
-                        let point = val.indexOf('.')
+                    if (
+                        isFinite( val ) && point == -1
+                        || /^(int|float|number|money)/.test(field_type)
+                    ) {
 
                         if (point == -1) {
                             type = 'n0'
                         } else {
                             let n_type = val.length - point - 1;
-
                             if (n_type == 2 || n_type == 1) {
                                 type = 'n' + n_type
                             } else {
@@ -1132,9 +1133,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
                     var field    = data.fields[idx]
                     var type     = typeof field.render === 'function' ? field.type : field.render
-                    var isHtml   = /^(html)/.test(type)
 
-                    html += value(val, isHtml)
+                    html += value(val, type)
 
                 })
 
@@ -1152,10 +1152,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
                 data.fields.forEach(function(field) {
 
                     var type     = typeof field.render === 'function' ? field.type : field.render
-                    var isNumber = /^(int|float|number|money)/.test(type)
-                    var isHtml   = /^(html)/.test(type)
 
-                    html += value(data.total[field.name], isHtml)
+                    html += value(data.total[field.name], type)
 
                 })
 
