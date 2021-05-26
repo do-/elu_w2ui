@@ -1070,27 +1070,39 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             var html = '<html><head><meta charset=utf-8><style>'
             html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.n0{mso-number-format:"0"} td.n1{mso-number-format:"0\.0"} td.n2{mso-number-format:"0\.00"} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
-            html += '</style></head><body><table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
+            html += '</style></head><body>'
 
-            if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
-            grid.searchData.forEach ((i) => {
-                var search = grid.searches.filter ((e) => {return e.field == i.field})[0] || {caption : 'Общий поиск'}
-                html += '<tr><td>' + search.caption + '</td>'
-                var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
-                html += '<td>' + w2utils.lang(op) + '</td>'
-                var value
-                if (i.type == 'enum') {
-                    value = i.value.map((e) => {return e.label}).join(',')
-                } else if (i.type == 'date' && i.operator == 'between') {
-                    value = i.value.join(' и ')
-                } else if (i.type == 'list') {
-                    value = search.options.items.filter((e) => {return e.id == i.value})[0].text
-                } else {
-                    value = i.value
+            if (options.show_header) {
+
+                html += '<table border=0>'
+
+                if (grid.header) {
+                    html += '<tr><td colspan=3>' + grid.header + '</td></tr>'
                 }
-                html += '<td>' + value + '</td></tr>'
-            })
-            html += '</table><br>'
+
+                if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
+                grid.searchData.forEach ((i) => {
+                    var search = grid.searches.filter ((e) => {return e.field == i.field})[0] || {caption : 'Общий поиск'}
+                    html += '<tr><td>' + search.caption + '</td>'
+                    var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
+                    html += '<td>' + w2utils.lang(op) + '</td>'
+                    var value
+                    if (i.type == 'enum') {
+                        value = i.value.map((e) => {return e.label}).join(',')
+                    } else if (i.type == 'date' && i.operator == 'between') {
+                        value = i.value.join(' и ')
+                    } else if (i.type == 'list') {
+                        value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+                    } else {
+                        value = i.value
+                    }
+                    html += '<td>' + value + '</td></tr>'
+                })
+
+                html += '</table><br>'
+
+            }
+
             html += '<table border>'
 
             var multiRows = grid.columnGroups.length !== 0
