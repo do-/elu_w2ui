@@ -1045,7 +1045,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
                             type = 'n0'
                         } else {
                             let n_type = val.length - point - 1;
-                            if (n_type == 2 || n_type == 1) {
+                            if ( 0 < n_type && n_type <= 3) {
                                 type = 'n' + n_type
                             } else {
                                 type = 'n'
@@ -1069,7 +1069,7 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
             }
 
             var html = '<html><head><meta charset=utf-8><style>'
-            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.n0{mso-number-format:"0"} td.n1{mso-number-format:"0\.0"} td.n2{mso-number-format:"0\.00"} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
+            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.n0{mso-number-format:"0"} td.n1{mso-number-format:"0\.0"} td.n2{mso-number-format:"0\.00"} td.n3{mso-number-format:"0\.000"} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
             html += '</style></head><body>'
 
             if (options.show_header || options.show_search) {
