@@ -551,9 +551,9 @@ $.fn.w2reform = function (o) {
 		$this.attr ('style', style)
 
 	})
-	
+
 	let chrome_off = () => $('input[autocomplete=off]', f.box).attr ({autocomplete: 'chrome-off'})
-	
+
 	chrome_off ()
 
     f.on('refresh:after', function() {
@@ -692,6 +692,8 @@ function reloadGrid (name) {
 function add_vocabularies (data, vocs) {
 
 	for (let [k, o] of Object.entries (vocs)) {
+
+        if (!data [k]) continue
 
 		let items = clone (data [k]); if (!items || !Array.isArray (items)) continue
 
@@ -1000,22 +1002,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
     if (!fn) fn = $('title').text ()
     fn += '.xls'
 
-    function value(val, isNumber, isHtml) {
-
-        if (
-            typeof val === 'undefined'
-            || val === null
-        ) return ''
-
-        if (isNumber) val = String(val).replace ('.', ',')
-
-	if (isHtml) return val
-
-        return escapeHtml(val)
-
-    }
-
     grid.toArray(
+
         function(data) {
 
             var percent
@@ -1032,28 +1020,93 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
         },
         function(data) {
 
-            var html = '<html><head><meta charset=utf-8><style>td{mso-number-format:"\@"} td.n{mso-number-format:General}</style></head><body>'
-            html += '<table border=0><tr><td colspan=3>' + grid.header + '</td></tr>'
-            if (grid.searchData.length > 0) html += '<tr><td colspan=3>Фильтры:</td></tr>'
-            grid.searchData.forEach ((i) => {
-                var search = grid.searches.filter ((e) => {return e.field == i.field})[0]
-                html += '<tr><td>' + search.caption + '</td>'
-                var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
-                html += '<td>' + w2utils.lang(op) + '</td>'
-                var value
-                if (i.type == 'enum') {
-                    value = i.value.map((e) => {return e.label}).join(',')
-                } else if (i.type == 'date' && i.operator == 'between') {
-                    value = i.value.join(' и ')
-                } else if (i.type == 'list') {
-                    value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+            function value(val, field_type) {
+
+                if (typeof val === 'undefined' || val === null) {
+
+                    return '<td></td>';
+
+                } else if ( /^(html)/.test(field_type) ) {
+
+                    return '<td>' + val + '</td>'
+
                 } else {
-                    value = i.value
+
+                    let type
+                    val = String(val)
+                    let point = val.indexOf('.')
+
+                    if (
+                        isFinite( val ) && point == -1
+                        || /^(int|float|number|money)/.test(field_type)
+                    ) {
+
+                        if (point == -1) {
+                            type = 'n0'
+                        } else {
+                            let n_type = val.length - point - 1;
+                            if ( 0 < n_type && n_type <= 3) {
+                                type = 'n' + n_type
+                            } else {
+                                type = 'n'
+                            }
+                        }
+
+                    } else if ( /^\d\d.\d\d.\d\d\d\d$/.test(val) ) {
+                        type = 'd'
+                    } else if ( /^\d\d.\d\d.\d\d\d\d \d\d:\d\d$/.test(val) ) {
+                        type = 'dhm'
+                    } else if ( /^\d\d.\d\d.\d\d\d\d \d\d:\d\d:\d\d$/.test(val) ) {
+                        type = 'dhms'
+                    }
+
+                    val = escapeHtml(val)
+
+                    return '<td' + ( type ? ` class="${type}"` : '' ) + '>' + val + '</td>'
+
                 }
-                html += '<td>' + value + '</td></tr>'
-            })
-            html += '</table><br>'
+
+            }
+
+            var html = '<html><head><meta charset=utf-8><style>'
+            html += 'td{mso-number-format:"\@"} td.n{mso-number-format:General} td.n0{mso-number-format:"0"} td.n1{mso-number-format:"0\.0"} td.n2{mso-number-format:"0\.00"} td.n3{mso-number-format:"0\.000"} td.d{mso-number-format:"dd.MM.yyyy"} td.dhm{mso-number-format:"dd.MM.yyyy HH:mm"} td.dhms{mso-number-format:"dd.MM.yyyy HH:mm::ss"}'
+            html += '</style></head><body>'
+
+            if (options.show_header || options.show_search) {
+
+                html += '<table border=0>'
+
+                if (grid.header && options.show_header) {
+                    html += '<tr><td colspan=3>' + grid.header + '</td></tr>'
+                }
+
+                if (grid.searchData.length > 0 && options.show_search) {
+                    html += '<tr><td colspan=3>Фильтры:</td></tr>'
+                    grid.searchData.forEach ((i) => {
+                        var search = grid.searches.filter ((e) => {return e.field == i.field})[0] || {caption : 'Общий поиск'}
+                        html += '<tr><td>' + search.caption + '</td>'
+                        var op = i.operator + (i.operator == 'less' || i.operator == 'more' ? ' than' : '')
+                        html += '<td>' + w2utils.lang(op) + '</td>'
+                        var value
+                        if (i.type == 'enum') {
+                            value = i.value.map((e) => {return e.label}).join(',')
+                        } else if (i.type == 'date' && i.operator == 'between') {
+                            value = i.value.join(' и ')
+                        } else if (i.type == 'list') {
+                            value = search.options.items.filter((e) => {return e.id == i.value})[0].text
+                        } else {
+                            value = i.value
+                        }
+                        html += '<td>' + value + '</td></tr>'
+                    })
+                }
+
+                html += '</table><br>'
+
+            }
+
             html += '<table border>'
+
             var multiRows = grid.columnGroups.length !== 0
 
             for (var i = 0; i <= 1; i++) {
@@ -1094,11 +1147,8 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
                     var field    = data.fields[idx]
                     var type     = typeof field.render === 'function' ? field.type : field.render
-                    var isNumber = /^(int|float|number|money)/.test(type)
-		    var isHtml   = /^(html)/.test(type)
-                    var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '>' + value(val, isNumber, isHtml) + '</td>'
+                    html += value(val, type)
 
                 })
 
@@ -1108,22 +1158,20 @@ w2obj.grid.prototype.saveAsXLS = function (fn, cb, options) {
 
             if (data.total) {
 
-                html += '<tr>'
+
+                html += '<tr style="font-weight:bold"><b>'
 
                 if (lineNumbers) html += '<td></td>'
 
                 data.fields.forEach(function(field) {
 
                     var type     = typeof field.render === 'function' ? field.type : field.render
-                    var isNumber = /^(int|float|number|money)/.test(type)
-		    var isHtml   = /^(html)/.test(type)
-                    var classes  = isNumber ? ' class="n"' : ''
 
-                    html += '<td' + classes + '><b>' + value(data.total[field.name], isNumber, isHtml) + '</b></td>'
+                    html += value(data.total[field.name], type)
 
                 })
 
-                html += '</tr>'
+                html += '</b></tr>'
 
             }
 
@@ -1147,7 +1195,7 @@ w2obj.form.prototype.set_items = function (name, items) {
 	let fld = this.get (name).$el.w2field ()
 
 	$(fld.el).data ('selected', [])
-	
+
 	for (let item of items) fld.set (item, true)
 
 }
@@ -2026,7 +2074,7 @@ async function w2_msg_box (o) {
 	o.buttons = o.buttons.map (({id, label}) => `<button id=${id} class="w2ui-popup-btn w2ui-btn">${label}</button>`).join ('')
 
 	w2popup.message (o)
-	
+
 	return new Promise (ok => {
 		$('.w2ui-message button').click (e => {
 			w2popup.message ()
