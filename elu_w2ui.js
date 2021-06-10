@@ -1391,11 +1391,19 @@ function w2field_voc(data) {
                                 { type: 'button', id: 'select', caption: 'Добавить выбранные' }
                             );
 
-                            if (XLSX && options.multiselect && options.searchFromXLSX) items.push(
+                            if (
+                                XLSX
+                                && options.multiselect
+                                && (options.searchFromXLSX !== void 0
+                                    ? options.searchFromXLSX
+                                    : w2utils.settings
+                                        ? w2utils.settings.voc_select.searchFromXLSX
+                                        : false)
+                            ) items.push(
                                 {
-                                    type: 'menu-check',
+                                    type: 'menu',
                                     id: 'searchFromXLSX',
-                                    text: 'XLSX',
+                                    text: 'Выбрать из Exel',
                                     items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
                                 }
                             );
