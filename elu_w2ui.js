@@ -1391,10 +1391,20 @@ function w2field_voc(data) {
                                 { type: 'button', id: 'select', caption: 'Добавить выбранные' }
                             );
 
+                            if (XLSX && options.multiselect && options.searchFromXLSX) items.push(
+                                {
+                                    type: 'menu-check',
+                                    id: 'searchFromXLSX',
+                                    text: 'XLSX',
+                                    items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
+                                }
+                            );
+
                             return items;
 
                         })(),
                         onClick: function(e) {
+
                             if (e.target === 'select') {
                                 var ids = this.owner.getSelection();
 
@@ -1405,6 +1415,68 @@ function w2field_voc(data) {
                                 this.disable('select');
 
                             }
+
+                            if (/searchFromXLSX:(\w+)/.exec(e.target)) {
+
+                                var column = RegExp.$1;
+                                var $file = $('#search-from-xlsx');
+
+                                if ($file.length === 0) {
+                                    $file = $('<input id="search-from-xlsx" type="file" style="display:none;"/>');
+                                    $('body > main').append($file);
+                                }
+
+                                $file.trigger('click');
+
+                                $file.change(function(e) {
+
+                                    var file = e.target.files[0];
+
+                                    if (!/\.xlsx?$/.test(file.name)) return alert('Неверный формат');
+
+                                    var reader = new FileReader();
+                                    reader.readAsBinaryString(file);
+
+                                    reader.onload = function(e) {
+
+                                        var data = e.target.result;
+                                        var wb = XLSX.read(data, { type: 'binary' });
+                                        var rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+
+                                        var searches = rows.map(function(item) { return item[0] });
+
+                                        var url = (typeof w2ui.selectGrid.url === 'string') ? w2ui.selectGrid.url : w2ui.selectGrid.url.get;
+                                        var qs = {}
+
+                                        var type = /type=(\w+)/.exec(url);
+                                        var action = /action=(\w+)/.exec(url);
+                                        var part = /part=(\w+)/.exec(url);
+
+                                        if (type) qs.type = type[1];
+                                        if (action) qs.action = action[1];
+                                        if (part) qs.part = part[1];
+
+                                        query(
+                                            { type: 'voc_select' },
+                                            {
+                                                qs: qs,
+                                                column: column,
+                                                searches: searches
+                                            },
+                                            function(data) {
+                                                refreshGrids(
+                                                    data.map(function(item) { return item.id }),
+                                                    'add'
+                                                );
+                                            }
+                                        );
+
+                                    }
+
+                                });
+
+                            }
+
                         }
                     },
                     searches    : searches,
@@ -1546,10 +1618,11 @@ function w2field_voc(data) {
 
                 w2ui.selectGrid_toolbar.on('click:after', function(e) {
 
+                    if (/searchFromXLSX/.test(e.target)) return;
+
                     addToolbarToSearch();
 
                     w2ui.selectGrid.allRecords = options.multiselect ? w2ui.selectedGrid.records : [];
-
                     w2ui.selectGrid.reload();
 
                 });
