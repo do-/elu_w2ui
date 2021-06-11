@@ -1559,20 +1559,17 @@ function w2field_voc(data) {
 
                             if (
                                 XLSX
-                                && options.multiselect
                                 && (options.searchFromXLSX !== void 0
                                     ? options.searchFromXLSX
                                     : w2utils.settings
                                         ? w2utils.settings.voc_select.searchFromXLSX
                                         : false)
-                            ) items.push(
-                                {
-                                    type: 'menu',
-                                    id: 'searchFromXLSX',
-                                    text: 'Выбрать из Exel',
-                                    items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
-                                }
-                            );
+                            ) items.push({
+                                type: 'menu',
+                                id: 'searchFromXLSX',
+                                text: 'Выбрать из Exel',
+                                items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
+                            });
 
                             return items;
 
@@ -1638,10 +1635,14 @@ function w2field_voc(data) {
                                                 searches: searches
                                             },
                                             function(data) {
+
+                                                if (data.length === 0) return alert('Нет выбраных значений');
+
                                                 refreshGrids(
                                                     data.map(function(item) { return item.id }),
                                                     'add'
                                                 );
+
                                             }
                                         );
 
