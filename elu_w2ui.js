@@ -1433,6 +1433,7 @@ function w2field_voc(data) {
 
                                 $file.trigger('click');
 
+                                $file.off('change');
                                 $file.change(function(e) {
 
                                     var file = e.target.files[0];
