@@ -1402,7 +1402,7 @@ function w2field_voc(data) {
                                 type: 'menu',
                                 id: 'searchFromXLSX',
                                 text: 'Выбрать из Exel',
-                                items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
+                                items: options.columns.map(function(item) { return { id: item.dbField || item.field, text: item.caption } })
                             });
 
                             return items;
