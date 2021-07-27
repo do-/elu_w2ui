@@ -1182,10 +1182,10 @@ function w2field_voc(data) {
 
         if (action === 'add') {
             selectedIds = selectedIds.concat(ids);
-            w2ui.selectGrid.total -= ids.length;
+            if (w2ui.selectGrid.total >= 0) w2ui.selectGrid.total -= ids.length;
         } else {
             selectedIds = selectedIds.filter(function(id) { return !ids.includes(id); });
-            w2ui.selectGrid.total += ids.length;
+            if (w2ui.selectGrid.total >= 0) w2ui.selectGrid.total += ids.length;
         }
 
         selectedIds = selectedIds.map(function(id) { return id.toString(); });
