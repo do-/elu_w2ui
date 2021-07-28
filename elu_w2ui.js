@@ -1462,6 +1462,8 @@ function w2field_voc(data) {
                                         if (action) qs.action = action[1];
                                         if (part) qs.part = part[1];
 
+                                        popup.lock('', true);
+
                                         query(
                                             { type: 'voc_select' },
                                             {
@@ -1471,6 +1473,7 @@ function w2field_voc(data) {
                                             },
                                             function(data) {
 
+                                                popup.unlock();
                                                 $file[0].value = '';
 
                                                 if (data.length === 0) return alert('Нет выбраных значений');
