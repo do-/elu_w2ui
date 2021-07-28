@@ -1401,7 +1401,7 @@ function w2field_voc(data) {
                             ) items.push({
                                 type: 'menu',
                                 id: 'searchFromXLSX',
-                                text: 'Выбрать из Exel',
+                                text: 'Выбрать из Excel',
                                 items: options.columns.map(function(item) { return { id: item.dbField || item.field, text: item.caption } })
                             });
 
@@ -1470,6 +1470,8 @@ function w2field_voc(data) {
                                                 searches: searches
                                             },
                                             function(data) {
+
+                                                $file[0].value = '';
 
                                                 if (data.length === 0) return alert('Нет выбраных значений');
 
