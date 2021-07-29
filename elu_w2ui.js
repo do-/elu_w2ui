@@ -1347,10 +1347,10 @@ function w2field_voc(data) {
 
         if (action === 'add') {
             selectedIds = selectedIds.concat(ids);
-            w2ui.selectGrid.total -= ids.length;
+            if (w2ui.selectGrid.total >= 0) w2ui.selectGrid.total -= ids.length;
         } else {
             selectedIds = selectedIds.filter(function(id) { return !ids.includes(id); });
-            w2ui.selectGrid.total += ids.length;
+            if (w2ui.selectGrid.total >= 0) w2ui.selectGrid.total += ids.length;
         }
 
         selectedIds = selectedIds.map(function(id) { return id.toString(); });
@@ -1567,8 +1567,8 @@ function w2field_voc(data) {
                             ) items.push({
                                 type: 'menu',
                                 id: 'searchFromXLSX',
-                                text: 'Выбрать из Exel',
-                                items: options.columns.map(function(item) { return { id: item.field, text: item.caption } })
+                                text: 'Выбрать из Excel',
+                                items: options.columns.map(function(item) { return { id: item.dbField || item.field, text: item.caption } })
                             });
 
                             return items;
@@ -1599,6 +1599,7 @@ function w2field_voc(data) {
 
                                 $file.trigger('click');
 
+                                $file.off('change');
                                 $file.change(function(e) {
 
                                     var file = e.target.files[0];
@@ -1627,6 +1628,8 @@ function w2field_voc(data) {
                                         if (action) qs.action = action[1];
                                         if (part) qs.part = part[1];
 
+                                        popup.lock('', true);
+
                                         query(
                                             { type: 'voc_select' },
                                             {
@@ -1635,6 +1638,9 @@ function w2field_voc(data) {
                                                 searches: searches
                                             },
                                             function(data) {
+
+                                                popup.unlock();
+                                                $file[0].value = '';
 
                                                 if (data.length === 0) return alert('Нет выбраных значений');
 
