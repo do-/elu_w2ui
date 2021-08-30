@@ -1267,6 +1267,10 @@ function w2field_voc(data) {
         , showGridHeaders = !(options.columns.length === 1 && !options.columns[0].caption)
         , w2SelectedGrid;
 
+    if (!showGridHeaders) {
+        options.columns[0].caption = options.title
+    }
+
     if (options.onInit) options.onInit.call(this, options);
 
     $view.eq(0).attr({
