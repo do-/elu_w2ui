@@ -1725,6 +1725,12 @@ function w2field_voc(data) {
                         var json       = JSON.parse(e.xhr.responseText),
                             recordsKey = options.recordsKey;
 
+                        if (!json.success && json.id) {
+                            alert ('На сервере произошла ошибка. Запишите, пожалуйста, её номер для обращения в службу поддержки: ' + json.id)
+                            e.preventDefault ()
+                            return
+                        }
+
                         var total = json.content.cnt === void 0 ? -1 : json.content.cnt;
                         if (total > 0) total -= selectedIds.length;
 
